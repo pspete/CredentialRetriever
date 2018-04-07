@@ -20,20 +20,20 @@ Supply the AppID and URL to the CyberArk Central Credential Provider Web Service
 
 Specify relevant parameter values needed to find the required account.
 
-![Get-CCPCredential](.\media\RetrieveCreds.png)
+![Get-CCPCredential](media/RetrieveCreds.png)
 
 ### ToSecureString Method
 
 Where required for downstream consumption, easily convert returned password to a
 `System.Security.SecureString`, using the `ToSecureString()` Method.
 
-![ToSecureString Method](.\media\ToSecureString.png)
+![ToSecureString Method](media/ToSecureString.png)
 
 ### ToCredential Method
 
 Use the `ToCredential()` Method to convert the returned Username/Password to a `PSCredential` Object.
 
-![ToCredential Method](.\media\ToCredential.png)
+![ToCredential Method](media/ToCredential.png)
 
 ## Installation
 
