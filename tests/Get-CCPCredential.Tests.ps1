@@ -87,11 +87,11 @@ InModuleScope $ModuleName {
 
 		It "invokes rest method with credentials" {
 
-			$credential = New-Object System.Management.Automation.PSCredential("SomeUser", $("SomePassword" | ConvertTo-SecureString -AsPlainText -Force))
-			$InputObj | Get-CCPCredential -credential $cred
+			$SomeCredential = New-Object System.Management.Automation.PSCredential("SomeUser", $("SomePassword" | ConvertTo-SecureString -AsPlainText -Force))
+			$InputObj | Get-CCPCredential -credential $SomeCredential
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
-				$credential -eq $cred
+				$credential -eq $SomeCredential
 
 			} -Times 1 -Exactly -Scope It
 		}
