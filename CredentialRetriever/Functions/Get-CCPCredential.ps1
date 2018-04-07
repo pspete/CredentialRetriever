@@ -414,20 +414,28 @@
 
 			#output result
 		} Finally {
+
 			if($result) {
+
 				#Add ScriptMethod to output object to convert password to Secure String
 				$result | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
+
 					$this.Content | ConvertTo-SecureString -AsPlainText -Force
+
 				}
 
 				#Add ScriptMethod to output object to convert username & password to Credential Object
 				$result | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
+
 					New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
+
 				}
 
 				#Return the result from CCP
 				$result
+
 			}
+
 		}
 
 	}
