@@ -90,7 +90,7 @@
 
 	Calls Invoke-RestMethod with the supplied Credentials for OS User authentication
 	#>
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "Suppress alert from ToSecureString ScriptMethod")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "", Justification = "Suppress alert from ToSecureString ScriptMethod")]
 	[CmdletBinding(DefaultParameterSetName = "Default")]
 	Param(
 		# Unique ID of the application
