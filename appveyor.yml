@@ -25,7 +25,7 @@ skip_commits:
 only_commits:
   files:
     - build\
-    - psPAS\
+    - CredentialRetriever\
     - tests\
 
 os: WMF 5
