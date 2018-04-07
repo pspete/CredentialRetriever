@@ -1,7 +1,7 @@
 # CredentialRetriever
 
 [![Build status](https://ci.appveyor.com/api/projects/status/s2x3alg52ctp2pyl/branch/master?svg=true)](https://ci.appveyor.com/project/pspete/CredentialRetriever/branch/master)
-[![AppVeyor tests](https://img.shields.io/appveyor/tests/CredentialRetirever/CredentialRetriever.svg)](https://ci.appveyor.com/project/pspete/CredentialRetriever)
+[![AppVeyor tests](https://img.shields.io/appveyor/tests/pspete/CredentialRetriever.svg)](https://ci.appveyor.com/project/pspete/CredentialRetriever)
 [![Coverage Status](https://coveralls.io/repos/github/pspete/CredentialRetriever/badge.svg)](https://coveralls.io/github/pspete/CredentialRetriever)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/CredentialRetriever.svg)](https://www.powershellgallery.com/packages/CredentialRetriever)
 [![license](https://img.shields.io/github/license/pspete/CredentialRetriever.svg)](https://github.com/pspete/CredentialRetriever/blob/master/LICENSE)
