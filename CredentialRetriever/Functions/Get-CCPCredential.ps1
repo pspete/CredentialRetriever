@@ -47,6 +47,9 @@
 	.PARAMETER UseDefaultCredentials
 	Use the default credentials for CCP OS User authentication.
 
+	.PARAMETER CertificateThumbPrint
+	A Certificate Thumbprint authorised to access the AIMWebService.
+
 	.PARAMETER WebServiceName
 	The name the CCP WebService is configured under in IIS.
 	Defaults to AIMWebService
@@ -89,6 +92,11 @@
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -Credential $creds
 
 	Calls Invoke-RestMethod with the supplied Credentials for OS User authentication
+
+	.EXAMPLE
+	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -CertificateThumbPrint $Cert_ThumbPrint
+
+	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "", Justification = "Suppress alert from ToSecureString ScriptMethod")]
 	[CmdletBinding(DefaultParameterSetName = "Default")]
@@ -109,6 +117,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$AppID,
 
@@ -127,6 +140,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[string]
 		$Safe,
@@ -147,6 +165,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$Folder,
 
@@ -165,6 +188,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[string]
 		$Object,
@@ -185,6 +213,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$UserName,
 
@@ -203,6 +236,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[string]
 		$Address,
@@ -223,6 +261,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$Database,
 
@@ -241,6 +284,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[string]
 		$PolicyID,
@@ -261,6 +309,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$Reason,
 
@@ -279,6 +332,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[int]
 		$ConnectionTimeout,
@@ -302,6 +360,15 @@
 		[Switch]
 		$UseDefaultCredentials,
 
+		# Use certificate to authenticate to CCP
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
+		[string]
+		$CertificateThumbPrint,
+
 		# Unique ID of the CCP webservice in IIS
 		[Parameter(
 			Mandatory = $false,
@@ -317,6 +384,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
 		)]
 		[string]
 		$WebServiceName = "AIMWebService",
@@ -337,6 +409,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "DefaultCredentials"
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "CertificateThumbPrint"
+		)]
 		[string]
 		$URL
 	)
@@ -346,7 +423,7 @@
 		#Collection of parameters which are to be excluded from the request URL
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += "URL", "WebServiceName", "Credential", "UseDefaultCredentials"
+		[array]$CommonParameters += "URL", "WebServiceName", "Credential", "UseDefaultCredentials", "CertificateThumbPrint"
 
 		#If Tls12 Security Protocol is available
 		if(([Net.SecurityProtocolType].GetEnumNames() -contains "Tls12") -and
@@ -376,23 +453,24 @@
 
 		#Create hashtable of request parameters
 		$Request = @{
-			"URI"         = "$URL/$WebServiceName/api/Accounts?$Query"
-			"Method"      = "GET"
-			"ContentType" = "application/json"
-			"ErrorAction" = "Stop"
+			"URI"           = "$URL/$WebServiceName/api/Accounts?$Query"
+			"Method"        = "GET"
+			"ContentType"   = "application/json"
+			"ErrorAction"   = "Stop"
+			"ErrorVariable" = "RequestError"
 		}
 
-		#Add Credential to request is provided
-		If($($PSCmdlet.ParameterSetName) -eq "Credential") {
-
-			$Request["Credential"] = $Credential
-
+		#Add authentication parameters to request
+		Switch($($PSCmdlet.ParameterSetName)) {
+			'Credential' { $Request["Credential"] = $Credential}
+			'DefaultCredentials' {$Request["UseDefaultCredentials"] = $true}
+			'CertificateThumbPrint' {$Request["CertificateThumbPrint"] = $CertificateThumbPrint}
 		}
 
-		#Add UseDefaultCredentials switch to request if specified
-		ElseIf($($PSCmdlet.ParameterSetName) -eq "DefaultCredentials") {
+		#in PSCore Use SslProtocol TLS1.2
+		if ($IsCoreCLR) {
 
-			$Request["UseDefaultCredentials"] = $true
+			$Request.Add("SslProtocol", "TLS12")
 
 		}
 
@@ -404,15 +482,10 @@
 		} Catch {
 
 			try {
-
-				#output error message
-				$err = $_ | ConvertFrom-Json -ErrorAction SilentlyContinue
+				$err = $_ | ConvertFrom-Json -ErrorAction Stop
 				Write-Error -Message $err.ErrorMsg -ErrorId $err.ErrorCode
+			} catch {Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop}
 
-				#if JSON conversion fails throw original exception
-			} catch {throw $error[-1]}
-
-			#output result
 		} Finally {
 
 			if($result) {
