@@ -441,10 +441,12 @@
 
 	Process {
 
+		[array]$QueryArgs = @()
+
 		#Enumerate bound parameters to build query string for URL
 		$PSBoundParameters.keys | Where-Object {$CommonParameters -notcontains $_} | ForEach-Object {
 
-			[array]$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
+			$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
 
 		}
 
