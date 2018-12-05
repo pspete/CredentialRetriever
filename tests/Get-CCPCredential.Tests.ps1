@@ -85,6 +85,20 @@ InModuleScope $ModuleName {
 
 		}
 
+		If($IsCoreCLR) {
+
+			It "specifies TLS12 SSL Protocol" {
+
+				$InputObj | Get-CCPCredential
+				Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+					$SslProtocol -eq "TLS12"
+
+				} -Times 1 -Exactly -Scope It
+			}
+
+		}
+
 		It "invokes rest method with credentials" {
 
 			$SomeCredential = New-Object System.Management.Automation.PSCredential("SomeUser", $("SomePassword" | ConvertTo-SecureString -AsPlainText -Force))
@@ -104,6 +118,30 @@ InModuleScope $ModuleName {
 				$UseDefaultCredentials -eq $true
 
 			} -Times 1 -Exactly -Scope It
+		}
+
+		It "invokes rest method with certificateThumbprint" {
+
+			$thumbprint = "C1Y2BFE0R0ADR3KDR508C4KAS4C1YFB7EAR4ACRK"
+			$InputObj | Get-CCPCredential -certificateThumbprint $thumbprint
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$certificateThumbprint -eq $thumbprint
+
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It "catches exceptions from Invoke-RestMethod" {
+			Mock Invoke-RestMethod {throw "Some Error"}
+
+			{$InputObj | Get-CCPCredential -ErrorAction Stop} | Should throw
+		}
+
+		It "catches exceptions returned from the web service" {
+			$return = @{"ErrorMsg" = "Some Message"; "ErrorCode" = "SomeCode"}
+			Mock Invoke-RestMethod {throw $($return | Convertto-Json)}
+
+			{$InputObj | Get-CCPCredential -ErrorAction Stop} | Should throw
 		}
 
 		It "outputs object with ToSecureString method" {
