@@ -455,11 +455,12 @@
 
 		#Create hashtable of request parameters
 		$Request = @{
-			"URI"           = "$URL/$WebServiceName/api/Accounts?$Query"
-			"Method"        = "GET"
-			"ContentType"   = "application/json"
-			"ErrorAction"   = "Stop"
-			"ErrorVariable" = "RequestError"
+			"URI"             = "$URL/$WebServiceName/api/Accounts?$Query"
+			"Method"          = "GET"
+			"ContentType"     = "application/json"
+			"ErrorAction"     = "Stop"
+			"ErrorVariable"   = "RequestError"
+			"UseBasicParsing" = $true
 		}
 
 		#Add authentication parameters to request
