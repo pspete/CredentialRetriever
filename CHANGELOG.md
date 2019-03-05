@@ -1,4 +1,14 @@
-# CredentialProvider Changelog
+# CredentialRetriever Changelog
+
+## 3.0.8 (March 5th 2019)
+
+Module updated to work with a locally installed Credential Provider in addition to the Central Credential Provider.
+
+- New Functions
+  - `Set-AIMConfiguration`
+    - Sets path to a local credential provider utility
+  - `Get-AIMCredential`
+    - Retrieves password from a local credential provider
 
 ## 2.0.6 (December 5th 2018)
 

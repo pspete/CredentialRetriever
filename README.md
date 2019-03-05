@@ -8,7 +8,7 @@
 
 ## **CyberArk Central Credential Provider PowerShell Retriever**
 
-Use PowerShell to retrieve credentials from the CyberArk Central Credential Provider Web Service.
+Use PowerShell to retrieve credentials from the CyberArk Central Credential Provider Web Service or a local Credential Provider SDK.
 
 ----------
 
@@ -21,6 +21,16 @@ Supply the AppID and URL to the CyberArk Central Credential Provider Web Service
 Specify relevant parameter values needed to find the required account.
 
 ![Get-CCPCredential](media/RetrieveCreds.png)
+
+### Get-AIMCredential
+
+Set the path to the CLIPasswordSDK.exe utility. This value will persist, and be imported each time the CredentialRetriever module is imported.
+
+![Set-AIMConfiguration](media/Set-AIMConfiguration.png)
+
+Supply the AppID & relevant parameter values needed to find the required account.
+
+![Get-AIMCredential](media/Get-AIMCredential.png)
 
 ### ToSecureString Method
 
@@ -40,7 +50,8 @@ Use the `ToCredential()` Method to convert the returned Username/Password to a `
 ### Prerequisites
 
 - Requires Powershell v3 (minimum)
-- CyberArk Central Credential Provider Web Service
+- CyberArk Central Credential Provider Web Service, And\Or
+- CyberArk Credential Provider
 
 ### Install Options
 
