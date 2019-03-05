@@ -19,7 +19,7 @@ $ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
 if( -not (Get-Module -Name $ModuleName -All)) {
 
-	Import-Module -Name "$ManifestPath" -Force -ErrorAction Stop
+	Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
 }
 InModuleScope $ModuleName {

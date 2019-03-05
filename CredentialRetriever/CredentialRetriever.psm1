@@ -14,26 +14,43 @@
 .LINK
 
 #>
-[CmdletBinding()]  
-param()
+[CmdletBinding()]
+param(
+
+	[bool]$DotSourceModule = $false
+
+)
 
 #Get function files
-Get-ChildItem $PSScriptRoot\ -Recurse -Filter "*.ps1" -Exclude "*.ps1xml" | 
+Get-ChildItem $PSScriptRoot\ -Recurse -Include "*.ps1" |
 
-    ForEach-Object {
+ForEach-Object {
 
-        Try{
-            
-            #Dot Source each file
-            . $_.fullname
+	if ($DotSourceModule) {
+		. $_.FullName
+	} else {
+		$ExecutionContext.InvokeCommand.InvokeScript(
+			$false,
+			(
+				[scriptblock]::Create(
+					[io.file]::ReadAllText(
+						$_.FullName,
+						[Text.Encoding]::UTF8
+					)
+				)
+			),
+			$null,
+			$null
+		)
 
-        }
+	}
 
-        Catch{
+}
 
-            Write-Error "Failed to import function $($_.fullname)"
-
-        }
-        
-    
-    }
+#Read config and make available in script scope
+$ConfigFile = "$env:HOMEDRIVE$env:HomePath\AIMConfiguration.xml"
+If(Test-Path $ConfigFile) {
+	Write-Verbose "Importing Settings: $ConfigFile"
+	$config = Import-Clixml -Path $ConfigFile
+	Set-Variable -Name AIM -Value $config -Scope Script
+}
