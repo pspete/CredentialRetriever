@@ -1,6 +1,6 @@
 # CredentialRetriever Changelog
 
-## 3.0.8 (March 5th 2019)
+## 3.0.7 (March 5th 2019)
 
 Module updated to work with a locally installed Credential Provider in addition to the Central Credential Provider.
 
