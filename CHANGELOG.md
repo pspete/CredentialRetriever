@@ -1,5 +1,12 @@
 # CredentialRetriever Changelog
 
+## 3.1.9
+
+- Updates
+  - Changed configuration file path
+    - Old Path: `$env:HOMEDRIVE$env:HomePath\AIMConfiguration.xml`
+    - New Path: `$env:USERPROFILE\AIMConfiguration.xml`
+
 ## 3.0.7 (March 5th 2019)
 
 Module updated to work with a locally installed Credential Provider in addition to the Central Credential Provider.
