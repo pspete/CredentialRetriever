@@ -27,20 +27,20 @@ Function Set-AIMConfiguration {
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true
 		)]
-		[ValidateScript( {Test-Path $_ -PathType Leaf})]
+		[ValidateScript( { Test-Path $_ -PathType Leaf })]
 		[ValidateNotNullOrEmpty()]
 		[string]$ClientPath
 	)
 
 	Begin {
 
-		$Defaults = [pscustomobject]@{}
+		$Defaults = [pscustomobject]@{ }
 
 	}
 
 	Process {
 
-		If($PSBoundParameters.Keys -contains "ClientPath") {
+		If ($PSBoundParameters.Keys -contains "ClientPath") {
 
 			$Defaults | Add-Member -MemberType NoteProperty -Name ClientPath -Value $ClientPath
 
@@ -52,7 +52,7 @@ Function Set-AIMConfiguration {
 
 		Set-Variable -Name AIM -Value $Defaults -Scope Script
 
-		$Script:AIM | Select-Object -Property * | Export-Clixml -Path "$env:HOMEDRIVE$env:HomePath\AIMConfiguration.xml" -Force
+		$Script:AIM | Select-Object -Property * | Export-Clixml -Path "$env:USERPROFILE\AIMConfiguration.xml" -Force
 
 	}
 
