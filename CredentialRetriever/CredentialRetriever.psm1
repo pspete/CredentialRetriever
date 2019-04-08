@@ -48,8 +48,8 @@ ForEach-Object {
 }
 
 #Read config and make available in script scope
-$ConfigFile = "$env:HOMEDRIVE$env:HomePath\AIMConfiguration.xml"
-If(Test-Path $ConfigFile) {
+$ConfigFile = "$env:USERPROFILE\AIMConfiguration.xml"
+If (Test-Path $ConfigFile) {
 	Write-Verbose "Importing Settings: $ConfigFile"
 	$config = Import-Clixml -Path $ConfigFile
 	Set-Variable -Name AIM -Value $config -Scope Script
