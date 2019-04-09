@@ -1,6 +1,6 @@
 # CredentialRetriever Changelog
 
-## 3.1.9
+## 3.1.9 (April 9th 2019)
 
 - Updates
   - Changed configuration file path
