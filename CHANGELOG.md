@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.2.11 (April 30th 2019)
+
+- Fix `Get-AIMCredential`
+  - Adds support for spaces in application names.
+
 ## 3.1.9 (April 9th 2019)
 
 - Updates
