@@ -194,14 +194,14 @@ Function Get-AIMCredential {
 		#Array to hold the Properties to return
 		[array]$ReturnProps = @()
 		#Hashtable to hold the Results to Output
-		[hashtable]$Output = @{}
+		[hashtable]$Output = @{ }
 
 	}
 
 	Process {
 
 		#Initial Command String
-		$Command = "/p AppDescs.AppID=$AppID"
+		$Command = "/p AppDescs.AppID=`"$AppID`""
 
 		Write-Debug $Command
 
@@ -209,7 +209,7 @@ Function Get-AIMCredential {
 		$PSBoundParameters.Add("Query", @())
 		$QueryParameters | ForEach-Object {
 
-			If($PSBoundParameters.ContainsKey("$_")) {
+			If ($PSBoundParameters.ContainsKey("$_")) {
 
 
 				$PSBoundParameters["Query"] += "$_=$($PSBoundParameters["$_"])"
@@ -250,7 +250,7 @@ Function Get-AIMCredential {
 
 			}
 
-			{$ConnectionParms -contains $PSItem} {
+			{ $ConnectionParms -contains $PSItem } {
 
 				$Command = "$Command /p ConnectionParms.$_=$($PSBoundParameters[$_])"
 
@@ -276,7 +276,7 @@ Function Get-AIMCredential {
 		$Result = Invoke-AIMClient @PSBoundParameters
 
 		#Output on StdOut
-		If($Result.StdOut) {
+		If ($Result.StdOut) {
 
 			#split returned results
 			$Results = ($Result.StdOut).Split(",")
@@ -284,7 +284,7 @@ Function Get-AIMCredential {
 			#use $returnProps to determine propertynames
 			$ReturnProps = $ReturnProps.Split(",")
 
-			For($i = 0 ; $i -lt $Results.length ; $i++) {
+			For ($i = 0 ; $i -lt $Results.length ; $i++) {
 
 				#PropertyName=PropertyValue
 				$Output[$(($ReturnProps[$i]) -replace "PassProps.", "")] = ($Results[$i]).trim()
