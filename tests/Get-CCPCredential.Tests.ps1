@@ -131,6 +131,17 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		It "invokes rest method with certificate" {
+
+			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
+			$InputObj | Get-CCPCredential -certificate $certificate
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$certificate -eq $certificate
+
+			} -Times 1 -Exactly -Scope It
+		}
+
 		It "catches exceptions from Invoke-RestMethod" {
 			Mock Invoke-RestMethod {throw "Some Error"}
 
