@@ -49,7 +49,7 @@
 
 	.PARAMETER Certificate
 	A Certificate from a local store which is authorised to access the AIMWebService.
-	
+
 	.PARAMETER CertificateThumbPrint
 	A Certificate Thumbprint authorised to access the AIMWebService.
 
@@ -100,7 +100,7 @@
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -CertificateThumbPrint $Cert_ThumbPrint
 
 	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
-	
+
 	.EXAMPLE
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -Certificate $Cert
 
