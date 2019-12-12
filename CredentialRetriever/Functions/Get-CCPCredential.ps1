@@ -47,6 +47,9 @@
 	.PARAMETER UseDefaultCredentials
 	Use the default credentials for CCP OS User authentication.
 
+	.PARAMETER Certificate
+	A Certificate from a local store which is authorised to access the AIMWebService.
+
 	.PARAMETER CertificateThumbPrint
 	A Certificate Thumbprint authorised to access the AIMWebService.
 
@@ -97,6 +100,11 @@
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -CertificateThumbPrint $Cert_ThumbPrint
 
 	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
+
+	.EXAMPLE
+	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -Certificate $Cert
+
+	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "", Justification = "Suppress alert from ToSecureString ScriptMethod")]
 	[CmdletBinding(DefaultParameterSetName = "Default")]
@@ -122,6 +130,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$AppID,
 
@@ -145,6 +158,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
 		)]
 		[string]
 		$Safe,
@@ -170,6 +188,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$Folder,
 
@@ -193,6 +216,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
 		)]
 		[string]
 		$Object,
@@ -218,6 +246,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$UserName,
 
@@ -241,6 +274,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
 		)]
 		[string]
 		$Address,
@@ -266,6 +304,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$Database,
 
@@ -289,6 +332,11 @@
 			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
 		)]
 		[string]
 		$PolicyID,
@@ -314,6 +362,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$Reason,
 
@@ -338,6 +391,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[int]
 		$ConnectionTimeout,
 
@@ -359,6 +417,15 @@
 		)]
 		[Switch]
 		$UseDefaultCredentials,
+
+		# Use certificate to authenticate to CCP
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
+		[X509Certificate]
+		$Certificate,
 
 		# Use certificate to authenticate to CCP
 		[parameter(
@@ -390,6 +457,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$WebServiceName = "AIMWebService",
 
@@ -414,6 +486,11 @@
 			ValueFromPipeline = $true,
 			ParameterSetName = "CertificateThumbPrint"
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ParameterSetName = "Certificate"
+		)]
 		[string]
 		$URL
 	)
@@ -423,10 +500,10 @@
 		#Collection of parameters which are to be excluded from the request URL
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += "URL", "WebServiceName", "Credential", "UseDefaultCredentials", "CertificateThumbPrint"
+		[array]$CommonParameters += "URL", "WebServiceName", "Credential", "UseDefaultCredentials", "CertificateThumbPrint", "Certificate"
 
 		#If Tls12 Security Protocol is available
-		if(([Net.SecurityProtocolType].GetEnumNames() -contains "Tls12") -and
+		if (([Net.SecurityProtocolType].GetEnumNames() -contains "Tls12") -and
 
 			#And Tls12 is not already in use
 			(-not ([System.Net.ServicePointManager]::SecurityProtocol -match "Tls12"))) {
@@ -444,7 +521,7 @@
 		[array]$QueryArgs = @()
 
 		#Enumerate bound parameters to build query string for URL
-		$PSBoundParameters.keys | Where-Object {$CommonParameters -notcontains $_} | ForEach-Object {
+		$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
 
 			$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
 
@@ -464,10 +541,11 @@
 		}
 
 		#Add authentication parameters to request
-		Switch($($PSCmdlet.ParameterSetName)) {
-			'Credential' { $Request["Credential"] = $Credential}
-			'DefaultCredentials' {$Request["UseDefaultCredentials"] = $true}
-			'CertificateThumbPrint' {$Request["CertificateThumbPrint"] = $CertificateThumbPrint}
+		Switch ($($PSCmdlet.ParameterSetName)) {
+			'Credential' { $Request["Credential"] = $Credential }
+			'DefaultCredentials' { $Request["UseDefaultCredentials"] = $true }
+			'CertificateThumbPrint' { $Request["CertificateThumbPrint"] = $CertificateThumbPrint }
+			'Certificate' { $Request["Certificate"] = $Certificate }
 		}
 
 		#in PSCore Use SslProtocol TLS1.2
@@ -482,16 +560,19 @@
 			#send request
 			$result = Invoke-RestMethod @Request
 
-		} Catch {
+		}
+		Catch {
 
 			try {
 				$err = $_ | ConvertFrom-Json -ErrorAction Stop
 				Write-Error -Message $err.ErrorMsg -ErrorId $err.ErrorCode
-			} catch {Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop}
+			}
+			catch { Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop }
 
-		} Finally {
+		}
+		Finally {
 
-			if($result) {
+			if ($result) {
 
 				#Add ScriptMethod to output object to convert password to Secure String
 				$result | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
@@ -516,6 +597,6 @@
 
 	}
 
-	End {}
+	End { }
 
 }

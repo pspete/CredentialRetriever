@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.3.16 (December 12th 2019)
+
+- Update `Get-CCPCredential`
+  - Added `certificate` parameter for specifyng an x509 certificate to use for the connection.
+
 ## 3.2.11 (April 30th 2019)
 
 - Fix `Get-AIMCredential`
