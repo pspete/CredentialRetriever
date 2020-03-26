@@ -69,7 +69,7 @@
 		PSData = @{
 
 			# Tags applied to this module. These help with module discovery in online galleries.
-			Tags       = @('CyberArk', 'REST', 'API', 'Security', 'AIM', 'CentralCredentialProvider', 'CredentialProvider', 'CLIPasswordSDK')
+			Tags       = @('CyberArk', 'REST', 'API', 'Security', 'AIM', 'AAM', 'CentralCredentialProvider', 'CredentialProvider', 'CLIPasswordSDK')
 
 			# A URL to the license for this module.
 			LicenseUri = 'https://github.com/pspete/CredentialRetriever/blob/master/LICENSE.md'
