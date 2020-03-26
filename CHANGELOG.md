@@ -1,5 +1,7 @@
 # CredentialRetriever Changelog
 
+## 3.4.0 (March 2020)
+
 ## 3.3.16 (December 12th 2019)
 
 - Update `Get-CCPCredential`

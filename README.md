@@ -1,10 +1,25 @@
 # CredentialRetriever
 
-[![Build status](https://ci.appveyor.com/api/projects/status/s2x3alg52ctp2pyl/branch/master?svg=true)](https://ci.appveyor.com/project/pspete/CredentialRetriever/branch/master)
-[![AppVeyor tests](https://img.shields.io/appveyor/tests/pspete/CredentialRetriever.svg)](https://ci.appveyor.com/project/pspete/CredentialRetriever)
-[![Coverage Status](https://coveralls.io/repos/github/pspete/CredentialRetriever/badge.svg)](https://coveralls.io/github/pspete/CredentialRetriever)
-[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/CredentialRetriever.svg)](https://www.powershellgallery.com/packages/CredentialRetriever)
-[![license](https://img.shields.io/github/license/pspete/CredentialRetriever.svg)](https://github.com/pspete/CredentialRetriever/blob/master/LICENSE)
+| Master Branch            | Latest Build            | CodeFactor                | Coverage                    |  PowerShell Gallery       |  License                   |
+|--------------------------|-------------------------|---------------------------|-----------------------------|---------------------------|----------------------------|
+|[![appveyor][]][av-site]  |[![tests][]][tests-site] | [![codefactor][]][cf-site]| [![codecov][]][codecov-link]| [![psgallery][]][ps-site] |[![license][]][license-link]|
+|                          |                         |                           | [![coveralls][]][cv-site]   | [![downloads][]][ps-site] |                            |
+
+[appveyor]:https://ci.appveyor.com/api/projects/status/s2x3alg52ctp2pyl/branch/master?svg=true
+[av-site]:https://ci.appveyor.com/project/pspete/CredentialRetriever/branch/master
+[coveralls]:https://coveralls.io/repos/github/pspete/CredentialRetriever/badge.svg?branch=master
+[cv-site]:https://coveralls.io/github/pspete/CredentialRetriever?branch=master
+[psgallery]:https://img.shields.io/powershellgallery/v/CredentialRetriever.svg
+[ps-site]:https://www.powershellgallery.com/packages/CredentialRetriever
+[tests]:https://img.shields.io/appveyor/tests/pspete/CredentialRetriever.svg
+[tests-site]:https://ci.appveyor.com/project/pspete/CredentialRetriever
+[downloads]:https://img.shields.io/powershellgallery/dt/credentialretriever.svg?color=blue
+[cf-site]:https://www.codefactor.io/repository/github/pspete/credentialretriever
+[codefactor]:https://www.codefactor.io/repository/github/pspete/credentialretriever/badge
+[codecov]:https://codecov.io/gh/pspete/CredentialRetriever/branch/master/graph/badge.svg
+[codecov-link]:https://codecov.io/gh/pspete/CredentialRetriever
+[license]:https://img.shields.io/github/license/pspete/credentialretriever.svg
+[license-link]:https://github.com/pspete/CredentialRetriever/blob/master/LICENSE.md
 
 ## **CyberArk Central Credential Provider PowerShell Retriever**
 
