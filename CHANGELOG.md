@@ -1,13 +1,15 @@
 # CredentialRetriever Changelog
 
-## 3.4.0 (March 2020)
+## 3.4.19 (March 27th 2020)
+
+- Changed minimum required PowerShell version to 5.1
 
 ## 3.3.16 (December 12th 2019)
 
 - Update `Get-CCPCredential`
-  - Added `certificate` parameter for specifyng an x509 certificate to use for the connection.
+  - Added `certificate` parameter for specifying an x509 certificate to use for the connection.
 
-## 3.2.11 (April 30th 2019)
+## 3.2.12 (April 30th 2019)
 
 - Fix `Get-AIMCredential`
   - Adds support for spaces in application names.
