@@ -64,7 +64,7 @@ Use the `ToCredential()` Method to convert the returned Username/Password to a `
 
 ### Prerequisites
 
-- Requires Powershell v3 (minimum)
+- Requires Powershell v5.1 (minimum)
 - CyberArk Central Credential Provider Web Service, And\Or
 - CyberArk Credential Provider
 
