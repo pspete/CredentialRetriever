@@ -16,13 +16,13 @@
 	# CompanyName = ''
 
 	# Copyright statement for this module
-	Copyright         = '(c) 2018 Pete Maan. All rights reserved.'
+	Copyright         = '(c) 2020 PSPETE LTD. All rights reserved.'
 
 	# Description of the functionality provided by this module
 	Description       = 'Retrieve Credentials from CyberArk Central Credential Provider Web Service, or Local Credential Provider using CLIPasswordSDK'
 
 	# Minimum version of the Windows PowerShell engine required by this module
-	PowerShellVersion = '3.0'
+	PowerShellVersion = '5.1'
 
 	# Name of the Windows PowerShell host required by this module
 	# PowerShellHostName = ''
@@ -69,7 +69,7 @@
 		PSData = @{
 
 			# Tags applied to this module. These help with module discovery in online galleries.
-			Tags       = @('CyberArk', 'REST', 'API', 'Security', 'AIM', 'CentralCredentialProvider', 'CredentialProvider', 'CLIPasswordSDK')
+			Tags       = @('CyberArk', 'REST', 'API', 'Security', 'AIM', 'AAM', 'CentralCredentialProvider', 'CredentialProvider', 'CLIPasswordSDK')
 
 			# A URL to the license for this module.
 			LicenseUri = 'https://github.com/pspete/CredentialRetriever/blob/master/LICENSE.md'
