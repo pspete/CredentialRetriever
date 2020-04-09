@@ -66,9 +66,6 @@
 
 	Begin {
 
-		$CallStack = $((Get-PSCallStack).Command)[1]
-		Write-Debug "Origin: $CallStack"
-
 		Try {
 
 			Get-Variable -Name AIM -ErrorAction Stop

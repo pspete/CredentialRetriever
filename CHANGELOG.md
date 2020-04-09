@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.5.22 (April 10th 2020)
+
+- Fix `Get-AIMCredential`
+  - Resolves error when returning passwords containing a comma character.
+
 ## 3.4.19 (March 27th 2020)
 
 - Changed minimum required PowerShell version to 5.1

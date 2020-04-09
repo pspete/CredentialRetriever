@@ -30,7 +30,7 @@ InModuleScope $ModuleName {
 			Mock Invoke-AIMClient -MockWith {
 				[pscustomobject]@{
 					"ExitCode" = 0
-					"StdOut"   = "SomeUser,value2,value3,value4,SomePassword,true"
+					"StdOut"   = "SomeUser#_-_#value2#_-_#value3#_-_#value4#_-_#SomePassword#_-_#true"
 					"StdErr"   = $null
 				}
 			}
@@ -80,6 +80,18 @@ InModuleScope $ModuleName {
 		It "outputs expected password to pscredential object" {
 			$result = $InputObj | Get-AIMCredential
 			($result.ToCredential()).GetNetworkCredential().Password | Should Be "SomePassword"
+		}
+
+		It "outputs expected password containing comma" {
+			Mock Invoke-AIMClient -MockWith {
+				[pscustomobject]@{
+					"ExitCode" = 0
+					"StdOut"   = "SomeUser#_-_#value2#_-_#value3#_-_#value4#_-_#Some,Password#_-_#true"
+					"StdErr"   = $null
+				}
+			}
+			$result = $InputObj | Get-AIMCredential
+			$result.Password | Should Be "Some,Password"
 		}
 
 	}
