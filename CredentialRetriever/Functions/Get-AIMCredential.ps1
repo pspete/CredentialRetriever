@@ -195,6 +195,10 @@ Function Get-AIMCredential {
 		[array]$ReturnProps = @()
 		#Hashtable to hold the Results to Output
 		[hashtable]$Output = @{ }
+		#Delimiter for separating the output fields
+		$Separator = "#_-_#"
+		#Set StringSplitOption
+		$RemoveEmptyEntries = [System.StringSplitOptions]::RemoveEmptyEntries
 
 	}
 
@@ -202,8 +206,6 @@ Function Get-AIMCredential {
 
 		#Initial Command String
 		$Command = "/p AppDescs.AppID=`"$AppID`""
-
-		Write-Debug $Command
 
 		#Build array of query string properties
 		$PSBoundParameters.Add("Query", @())
@@ -265,8 +267,7 @@ Function Get-AIMCredential {
 		$ReturnProps = $ReturnProps -join ","
 
 		#Build Command String
-		$Command = "$Command /o $ReturnProps"
-		Write-Debug $Command
+		$Command = "$Command /o $ReturnProps /d $Separator"
 
 		#Add Required CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
 		$PSBoundParameters.Add("CommandParameters", "$Command")
@@ -278,13 +279,13 @@ Function Get-AIMCredential {
 		#Output on StdOut
 		If ($Result.StdOut) {
 
-			#split returned results
-			$Results = ($Result.StdOut).Split(",")
+			#split returned results at Separator
+			$Results = ($Result.StdOut).Split($Separator, $RemoveEmptyEntries)
 
 			#use $returnProps to determine propertynames
 			$ReturnProps = $ReturnProps.Split(",")
 
-			For ($i = 0 ; $i -lt $Results.length ; $i++) {
+			For ($i = 0 ; $i -lt $ReturnProps.length ; $i++) {
 
 				#PropertyName=PropertyValue
 				$Output[$(($ReturnProps[$i]) -replace "PassProps.", "")] = ($Results[$i]).trim()
