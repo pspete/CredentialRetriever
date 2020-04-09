@@ -1,6 +1,6 @@
 # CredentialRetriever Changelog
 
-## 3.5.## (April 10th 2020)
+## 3.5.22 (April 10th 2020)
 
 - Fix `Get-AIMCredential`
   - Resolves error when returning passwords containing a comma character.
