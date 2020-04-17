@@ -197,8 +197,6 @@ Function Get-AIMCredential {
 		[hashtable]$Output = @{ }
 		#Delimiter for separating the output fields
 		$Separator = "#_-_#"
-		#Set StringSplitOption
-		$RemoveEmptyEntries = [System.StringSplitOptions]::RemoveEmptyEntries
 
 	}
 
@@ -280,7 +278,7 @@ Function Get-AIMCredential {
 		If ($Result.StdOut) {
 
 			#split returned results at Separator
-			$Results = ($Result.StdOut).Split($Separator, $RemoveEmptyEntries)
+			$Results = ($Result.StdOut) -Split $Separator
 
 			#use $returnProps to determine propertynames
 			$ReturnProps = $ReturnProps.Split(",")

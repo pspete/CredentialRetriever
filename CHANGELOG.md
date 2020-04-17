@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.5.2X (April 17th 2020)
+
+- Fix `Get-AIMCredential`
+  - Fix output parsing bug introduced in `3.5.22`.
+
 ## 3.5.22 (April 10th 2020)
 
 - Fix `Get-AIMCredential`
