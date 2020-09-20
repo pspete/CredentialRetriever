@@ -4,7 +4,7 @@
 	RootModule        = 'CredentialRetriever.psm1'
 
 	# Version number of this module.
-	ModuleVersion     = '3.5.25'
+	ModuleVersion     = '3.6.30'
 
 	# ID used to uniquely identify this module
 	GUID              = '6c792ac3-4068-4190-a2fc-099d9da50752'
