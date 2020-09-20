@@ -32,6 +32,7 @@
     #>
 
 	[CmdLetBinding(SupportsShouldProcess)]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "RemainingArgs", Justification = "Intentionally Unused Parameter")]
 	param(
 
 		[Parameter(
@@ -65,6 +66,8 @@
 	)
 
 	Begin {
+
+		$ErrorActionPreference = "Stop"
 
 		Try {
 

@@ -269,7 +269,6 @@ Function Get-AIMCredential {
 
 		#Add Required CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
 		$PSBoundParameters.Add("CommandParameters", "$Command")
-		$PSBoundParameters.Add("ErrorAction", "Stop")
 
 		#Invoke Credential Provider
 		$Result = Invoke-AIMClient @PSBoundParameters
