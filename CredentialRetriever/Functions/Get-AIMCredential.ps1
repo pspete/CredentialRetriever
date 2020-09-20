@@ -222,6 +222,7 @@ Function Get-AIMCredential {
 
 			"Query" {
 
+				#Add Query to Command String
 				#"Property=Value;Property=Value;Property=Value"
 				$Command = "$Command /p Query=""$($PSBoundParameters["Query"] -join ";")"""
 
@@ -229,12 +230,14 @@ Function Get-AIMCredential {
 
 			"QueryFormat" {
 
+				#Add QueryFormat Command String
 				$Command = "$Command /p QueryFormat=$QueryFormat"
 
 			}
 
 			"RequiredProps" {
 
+				#Add RequiredProps to Command String
 				$RequiredProps | ForEach-Object {
 
 					$ReturnProps += "PassProps.$_"
@@ -246,12 +249,14 @@ Function Get-AIMCredential {
 
 			"Reason" {
 
+				#Add Reason to Command String
 				$Command = "$Command /p Reason=$Reason"
 
 			}
 
 			{ $ConnectionParms -contains $PSItem } {
 
+				#Add ConnectionParms to Command String
 				$Command = "$Command /p ConnectionParms.$_=$($PSBoundParameters[$_])"
 
 			}
@@ -267,7 +272,7 @@ Function Get-AIMCredential {
 		#Build Command String
 		$Command = "$Command /o $ReturnProps /d $Separator"
 
-		#Add Required CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
+		#Add CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
 		$PSBoundParameters.Add("CommandParameters", "$Command")
 
 		#Invoke Credential Provider
