@@ -32,6 +32,7 @@
     #>
 
 	[CmdLetBinding(SupportsShouldProcess)]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "RemainingArgs", Justification = "Intentionally Unused Parameter")]
 	param(
 
 		[Parameter(
@@ -102,7 +103,7 @@
 			$Process.StartInfo.WindowStyle = "hidden"
 
 			#Start Process
-			$Result = Start-AIMClientProcess -Process $Process
+			$Result = Start-AIMClientProcess -Process $Process -ErrorAction Stop
 
 			#Return Error or Result
 			if($Result.StdErr -match '((?:^[A-Z]{5}[0-9]{3}[A-Z])|(?:ERROR \(\d+\)))(?::)? (.+)$') {

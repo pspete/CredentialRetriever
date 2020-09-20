@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.6.30 (September 20th 2020)
+
+- Fix `Get-AIMCredential`
+  - Resolves issue where specifying the `-ErrorAction` parameter when invoking the command resulted in an error.
+
 ## 3.5.25 (April 18th 2020)
 
 - Fix `Get-AIMCredential`
