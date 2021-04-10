@@ -60,6 +60,15 @@
 	.PARAMETER URL
 	The URL for the CCP Host
 
+	.PARAMETER SkipCertificateCheck
+	Skips certificate validation checks.
+
+	Using this parameter is not secure and is not recommended.
+
+	This switch is only intended to be used against known hosts using a self-signed certificate for testing purposes.
+
+	Use at your own risk.
+
 	.EXAMPLE
 	Get-CCPCredential -AppID PSScript -Safe PSAccounts -Object PSPlatform-AccountName -URL https://cyberark.yourcompany.com
 
