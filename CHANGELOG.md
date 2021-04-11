@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.7.34 (April 11th 2021)
+
+- Update `Get-CCPCredential`
+  - Added `SkipCertificateCheck` parameter.
+
 ## 3.6.30 (September 20th 2020)
 
 - Fix `Get-AIMCredential`
