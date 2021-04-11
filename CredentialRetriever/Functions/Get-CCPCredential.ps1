@@ -60,6 +60,15 @@
 	.PARAMETER URL
 	The URL for the CCP Host
 
+	.PARAMETER SkipCertificateCheck
+	Skips certificate validation checks.
+
+	Using this parameter is not secure and is not recommended.
+
+	This switch is only intended to be used against known hosts using a self-signed certificate for testing purposes.
+
+	Use at your own risk.
+
 	.EXAMPLE
 	Get-CCPCredential -AppID PSScript -Safe PSAccounts -Object PSPlatform-AccountName -URL https://cyberark.yourcompany.com
 
@@ -106,34 +115,34 @@
 
 	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
 	#>
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "", Justification = "Suppress alert from ToSecureString ScriptMethod")]
-	[CmdletBinding(DefaultParameterSetName = "Default")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
 	Param(
 		# Unique ID of the application
 		[Parameter(
 			Mandatory = $true,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$AppID,
@@ -142,27 +151,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Safe,
@@ -171,27 +180,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Folder,
@@ -200,27 +209,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Object,
@@ -229,27 +238,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$UserName,
@@ -258,27 +267,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Address,
@@ -287,27 +296,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Database,
@@ -316,27 +325,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$PolicyID,
@@ -345,27 +354,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
 		$Reason,
@@ -374,27 +383,27 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[int]
 		$ConnectionTimeout,
@@ -402,8 +411,8 @@
 		# Credentials to send in request to CCP
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[ValidateNotNullOrEmpty()]
 		[PSCredential]
@@ -412,8 +421,8 @@
 		# Use current system credentials for request to CCP
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[Switch]
 		$UseDefaultCredentials,
@@ -421,8 +430,8 @@
 		# Use certificate to authenticate to CCP
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[X509Certificate]
 		$Certificate,
@@ -430,8 +439,8 @@
 		# Use certificate to authenticate to CCP
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[string]
 		$CertificateThumbPrint,
@@ -440,59 +449,91 @@
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
-		$WebServiceName = "AIMWebService",
+		$WebServiceName = 'AIMWebService',
 
 		# CCP URL
 		[Parameter(
 			Mandatory = $true,
 			ValueFromPipelineByPropertyName = $true,
-			ParameterSetName = "Default"
+			ParameterSetName = 'Default'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Credential"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "DefaultCredentials"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "CertificateThumbPrint"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
 		)]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipeline = $true,
-			ParameterSetName = "Certificate"
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
 		)]
 		[string]
-		$URL
+		$URL,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Default'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Credential'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'CertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Certificate'
+		)]
+		[switch]$SkipCertificateCheck
 	)
 
 	Begin {
@@ -500,16 +541,16 @@
 		#Collection of parameters which are to be excluded from the request URL
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += "URL", "WebServiceName", "Credential", "UseDefaultCredentials", "CertificateThumbPrint", "Certificate"
+		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck'
 
 		#If Tls12 Security Protocol is available
-		if (([Net.SecurityProtocolType].GetEnumNames() -contains "Tls12") -and
+		if (([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
 
 			#And Tls12 is not already in use
-			(-not ([System.Net.ServicePointManager]::SecurityProtocol -match "Tls12"))) {
+			(-not ([System.Net.ServicePointManager]::SecurityProtocol -match 'Tls12'))) {
 
 			#Use Tls12
-			Write-Verbose "Setting Security Protocol to TLS12"
+			Write-Verbose 'Setting Security Protocol to TLS12'
 			[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 		}
@@ -532,26 +573,32 @@
 
 		#Create hashtable of request parameters
 		$Request = @{
-			"URI"             = "$URL/$WebServiceName/api/Accounts?$Query"
-			"Method"          = "GET"
-			"ContentType"     = "application/json"
-			"ErrorAction"     = "Stop"
-			"ErrorVariable"   = "RequestError"
-			"UseBasicParsing" = $true
+			'URI'             = "$URL/$WebServiceName/api/Accounts?$Query"
+			'Method'          = 'GET'
+			'ContentType'     = 'application/json'
+			'ErrorAction'     = 'Stop'
+			'ErrorVariable'   = 'RequestError'
+			'UseBasicParsing' = $true
 		}
 
 		#Add authentication parameters to request
 		Switch ($($PSCmdlet.ParameterSetName)) {
-			'Credential' { $Request["Credential"] = $Credential }
-			'DefaultCredentials' { $Request["UseDefaultCredentials"] = $true }
-			'CertificateThumbPrint' { $Request["CertificateThumbPrint"] = $CertificateThumbPrint }
-			'Certificate' { $Request["Certificate"] = $Certificate }
+			'Credential' { $Request['Credential'] = $Credential }
+			'DefaultCredentials' { $Request['UseDefaultCredentials'] = $true }
+			'CertificateThumbPrint' { $Request['CertificateThumbPrint'] = $CertificateThumbPrint }
+			'Certificate' { $Request['Certificate'] = $Certificate }
 		}
 
-		#in PSCore Use SslProtocol TLS1.2
+		#in PSCore Use SslProtocol TLS1.2 & SkipCertificateCheck parameter
 		if ($IsCoreCLR) {
 
-			$Request.Add("SslProtocol", "TLS12")
+			$Request.Add('SslProtocol', 'TLS12')
+			$Request.Add('SkipCertificateCheck', $SkipCertificateCheck.IsPresent)
+
+		} elseif ($SkipCertificateCheck) {
+
+			#Skip SSL Validation
+			Skip-CertificateCheck
 
 		}
 
@@ -560,17 +607,14 @@
 			#send request
 			$result = Invoke-RestMethod @Request
 
-		}
-		Catch {
+		} Catch {
 
 			try {
 				$err = $_ | ConvertFrom-Json -ErrorAction Stop
 				Write-Error -Message $err.ErrorMsg -ErrorId $err.ErrorCode
-			}
-			catch { Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop }
+			} catch { Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop }
 
-		}
-		Finally {
+		} Finally {
 
 			if ($result) {
 
