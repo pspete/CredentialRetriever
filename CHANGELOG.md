@@ -1,6 +1,6 @@
 # CredentialRetriever Changelog
 
-## 3.8.37
+## 3.8.36
 
 - Update to avoid an observed unexpected error behaviour.
 
