@@ -1,5 +1,9 @@
 # CredentialRetriever Changelog
 
+## 3.8.37
+
+- Update to avoid an observed unexpected error behaviour.
+
 ## 3.7.34 (April 11th 2021)
 
 - Update `Get-CCPCredential`
