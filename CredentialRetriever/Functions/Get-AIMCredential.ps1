@@ -65,7 +65,7 @@ Function Get-AIMCredential {
 	YourPass   false                   YourUser DOMAIN.COM
 
 	#>
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "", Justification = "Suppress alert from ToSecureString ScriptMethod")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
 	[CmdletBinding()]
 	Param(
 		# Unique ID of the application
@@ -137,7 +137,7 @@ Function Get-AIMCredential {
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true
 		)]
-		[ValidateSet("exact", "regexp")]
+		[ValidateSet('exact', 'regexp')]
 		[string]
 		$QueryFormat,
 
@@ -177,18 +177,18 @@ Function Get-AIMCredential {
 	Begin {
 		#Function Parameters which will form any query string
 		$QueryParameters = @(
-			"Safe",
-			"Folder",
-			"Object",
-			"UserName",
-			"Address",
-			"Database"
-			"PolicyID"
+			'Safe',
+			'Folder',
+			'Object',
+			'UserName',
+			'Address',
+			'Database'
+			'PolicyID'
 		)
 
 		$ConnectionParms = @(
-			"Port",
-			"Timeout"
+			'Port',
+			'Timeout'
 		)
 
 		#Array to hold the Properties to return
@@ -196,7 +196,7 @@ Function Get-AIMCredential {
 		#Hashtable to hold the Results to Output
 		[hashtable]$Output = @{ }
 		#Delimiter for separating the output fields
-		$Separator = "#_-_#"
+		$Separator = '#_-_#'
 
 	}
 
@@ -206,13 +206,13 @@ Function Get-AIMCredential {
 		$Command = "/p AppDescs.AppID=`"$AppID`""
 
 		#Build array of query string properties
-		$PSBoundParameters.Add("Query", @())
+		$PSBoundParameters.Add('Query', @())
 		$QueryParameters | ForEach-Object {
 
 			If ($PSBoundParameters.ContainsKey("$_")) {
 
 
-				$PSBoundParameters["Query"] += "$_=$($PSBoundParameters["$_"])"
+				$PSBoundParameters['Query'] += "$_=$($PSBoundParameters["$_"])"
 			}
 
 		}
@@ -220,22 +220,22 @@ Function Get-AIMCredential {
 		#Build Command String
 		switch ( $PSBoundParameters.Keys ) {
 
-			"Query" {
+			'Query' {
 
 				#Add Query to Command String
 				#"Property=Value;Property=Value;Property=Value"
-				$Command = "$Command /p Query=""$($PSBoundParameters["Query"] -join ";")"""
+				$Command = "$Command /p Query=""$($PSBoundParameters['Query'] -join ';')"""
 
 			}
 
-			"QueryFormat" {
+			'QueryFormat' {
 
 				#Add QueryFormat Command String
 				$Command = "$Command /p QueryFormat=$QueryFormat"
 
 			}
 
-			"RequiredProps" {
+			'RequiredProps' {
 
 				#Add RequiredProps to Command String
 				$RequiredProps | ForEach-Object {
@@ -243,11 +243,11 @@ Function Get-AIMCredential {
 					$ReturnProps += "PassProps.$_"
 				}
 
-				$Command = "$Command /p RequiredProps=$($RequiredProps -join ",")"
+				$Command = "$Command /p RequiredProps=$($RequiredProps -join ',')"
 
 			}
 
-			"Reason" {
+			'Reason' {
 
 				#Add Reason to Command String
 				$Command = "$Command /p Reason=$Reason"
@@ -264,33 +264,33 @@ Function Get-AIMCredential {
 		}
 
 		#Add Password & PasswordChangeInProcess to output fields
-		$ReturnProps += "Password"
-		$ReturnProps += "PasswordChangeInProcess"
+		$ReturnProps += 'Password'
+		$ReturnProps += 'PasswordChangeInProcess'
 		#Create Output fields string PropX,PropY,PropZ, Password, PasswordChangeInProcess
-		$ReturnProps = $ReturnProps -join ","
+		$ReturnProps = $ReturnProps -join ','
 
 		#Build Command String
 		$Command = "$Command /o $ReturnProps /d $Separator"
 
 		#Add CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
-		$PSBoundParameters.Add("CommandParameters", "$Command")
+		$PSBoundParameters.Add('CommandParameters', "$Command")
 
 		#Invoke Credential Provider
 		$Result = Invoke-AIMClient @PSBoundParameters
 
 		#Output on StdOut
-		If ($Result.StdOut) {
+		If ($null -ne $Result.StdOut) {
 
 			#split returned results at Separator
 			$Results = ($Result.StdOut) -Split $Separator
 
 			#use $returnProps to determine propertynames
-			$ReturnProps = $ReturnProps.Split(",")
+			$ReturnProps = $ReturnProps.Split(',')
 
 			For ($i = 0 ; $i -lt $ReturnProps.length ; $i++) {
 
 				#PropertyName=PropertyValue
-				$Output[$(($ReturnProps[$i]) -replace "PassProps.", "")] = ($Results[$i]).trim()
+				$Output[$(($ReturnProps[$i]) -replace 'PassProps.', '')] = ($Results[$i]).trim()
 
 			}
 
@@ -302,14 +302,14 @@ Function Get-AIMCredential {
 
 				$this.Password | ConvertTo-SecureString -AsPlainText -Force
 
-			}
+			} -Force
 
 			#Add ScriptMethod to output object to convert username & password to Credential Object
 			$OutputObject | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
 
 				New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
 
-			}
+			} -Force
 
 			#Return the result from AIM CP
 			$OutputObject
