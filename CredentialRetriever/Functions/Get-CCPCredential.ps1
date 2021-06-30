@@ -610,27 +610,51 @@
 		} Catch {
 
 			try {
+
 				$err = $_ | ConvertFrom-Json -ErrorAction Stop
-				Write-Error -Message $err.ErrorMsg -ErrorId $err.ErrorCode
-			} catch { Write-Error -Message $RequestError.ErrorRecord.Exception -ErrorId $RequestError.ErrorRecord.FullyQualifiedErrorId -ErrorAction Stop }
+				$ErrorMessage = $err.ErrorMsg
+				$ErrorID = $err.ErrorCode
+
+			} catch {
+
+				$ErrorMessage = $RequestError.ErrorRecord.Exception
+				$ErrorID = $RequestError.ErrorRecord.FullyQualifiedErrorId
+
+			} Finally {
+
+				#throw the error
+				$PSCmdlet.ThrowTerminatingError(
+
+					[System.Management.Automation.ErrorRecord]::new(
+
+						$ErrorMessage,
+						$ErrorID,
+						[System.Management.Automation.ErrorCategory]::NotSpecified,
+						$PSItem
+
+					)
+
+				)
+
+			}
 
 		} Finally {
 
-			if ($result) {
+			if ($null -ne $result) {
 
 				#Add ScriptMethod to output object to convert password to Secure String
 				$result | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
 
 					$this.Content | ConvertTo-SecureString -AsPlainText -Force
 
-				}
+				} -Force
 
 				#Add ScriptMethod to output object to convert username & password to Credential Object
 				$result | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
 
 					New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
 
-				}
+				} -Force
 
 				#Return the result from CCP
 				$result
