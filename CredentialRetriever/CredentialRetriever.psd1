@@ -16,10 +16,10 @@
 	# CompanyName = ''
 
 	# Copyright statement for this module
-	Copyright         = '(c) 2020 PSPETE LTD. All rights reserved.'
+	Copyright         = '(c) 2018-2021 Pete Maan. All rights reserved.'
 
 	# Description of the functionality provided by this module
-	Description       = 'Retrieve Credentials from CyberArk Central Credential Provider Web Service, or Local Credential Provider using CLIPasswordSDK'
+	Description       = 'Retrieve Credentials from CyberArk Central Credential Provider via REST, or Local Credential Provider using CLIPasswordSDK'
 
 	# Minimum version of the Windows PowerShell engine required by this module
 	PowerShellVersion = '5.1'
