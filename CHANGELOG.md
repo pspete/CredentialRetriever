@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.9
+
+- Update `Get-AIMCredential`
+  - Resolves issue where specifying a value for the `-Reason` parameter which includes a space resulted in an error.
+
 ## 3.8.36
 
 - Update to avoid an observed unexpected error behaviour.
