@@ -119,9 +119,30 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		It 'invokes rest method with query and credentials' {
+
+			$SomeCredential = New-Object System.Management.Automation.PSCredential('SomeUser', $('SomePassword' | ConvertTo-SecureString -AsPlainText -Force))
+			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -Credential $SomeCredential
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$credential -eq $SomeCredential
+
+			} -Times 1 -Exactly -Scope It
+		}
+
 		It 'invokes rest method with default credentials switch' {
 
 			$InputObj | Get-CCPCredential -UseDefaultCredentials
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$UseDefaultCredentials -eq $true
+
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'invokes rest method with query and default credentials switch' {
+
+			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -UseDefaultCredentials
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$UseDefaultCredentials -eq $true
@@ -140,10 +161,32 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		It 'invokes rest method with query and certificateThumbprint' {
+
+			$thumbprint = 'C1Y2BFE0R0ADR3KDR508C4KAS4C1YFB7EAR4ACRK'
+			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -CertificateThumbPrint $thumbprint
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$certificateThumbprint -eq $thumbprint
+
+			} -Times 1 -Exactly -Scope It
+		}
+
 		It 'invokes rest method with certificate' {
 
 			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
 			$InputObj | Get-CCPCredential -Certificate $certificate
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$certificate -eq $certificate
+
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'invokes rest method with query and certificate' {
+
+			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
+			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -Certificate $certificate
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$certificate -eq $certificate
