@@ -5,6 +5,9 @@
 - Update `Get-AIMCredential`
   - Resolves issue where specifying a value for the `-Reason` parameter which includes a space resulted in an error.
 
+- Update `Get-CCPCredential`
+  - Adds `Query` parameter to allow users to specify own query filter value to include in request URL.
+
 ## 3.8.36
 
 - Update to avoid an observed unexpected error behaviour.
