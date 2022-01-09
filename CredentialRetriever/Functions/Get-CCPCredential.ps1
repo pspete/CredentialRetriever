@@ -36,6 +36,9 @@
 	.PARAMETER Reason
 	The reason for retrieving the password. This reason will be audited in the Credential Provider audit log
 
+	.PARAMETER Query
+	A query value to be specified in the URL to filter the result.
+
 	.PARAMETER ConnectionTimeout
 	The number of seconds that the Central Credential Provider will try to retrieve the password.
 	The timeout is calculated when the request is sent from the web service to the Vault and returned back
@@ -114,6 +117,12 @@
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -Certificate $Cert
 
 	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
+
+	.EXAMPLE
+	Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact' -URL https://cyberark.yourcompany.com
+
+	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
+
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
 	[CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -379,6 +388,34 @@
 		[string]
 		$Reason,
 
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
+		)]
+		[string]
+		$Query,
+
 		# Number of seconds to try
 		[Parameter(
 			Mandatory = $false,
@@ -405,6 +442,31 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Certificate'
 		)]
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
+		)]
 		[int]
 		$ConnectionTimeout,
 
@@ -413,6 +475,11 @@
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Credential'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
 		)]
 		[ValidateNotNullOrEmpty()]
 		[PSCredential]
@@ -424,6 +491,11 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'DefaultCredentials'
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
 		[Switch]
 		$UseDefaultCredentials,
 
@@ -433,6 +505,11 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Certificate'
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
+		)]
 		[X509Certificate]
 		$Certificate,
 
@@ -441,6 +518,11 @@
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'CertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
 		)]
 		[string]
 		$CertificateThumbPrint,
@@ -471,6 +553,31 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Certificate'
 		)]
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
+		)]
 		[string]
 		$WebServiceName = 'AIMWebService',
 
@@ -499,6 +606,31 @@
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Certificate'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
 		)]
 		[string]
 		$URL,
@@ -533,6 +665,36 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Certificate'
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCredential'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryDefaultCredentials'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificateThumbPrint'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'QueryCertificate'
+		)]
 		[switch]$SkipCertificateCheck
 	)
 
@@ -559,21 +721,37 @@
 
 	Process {
 
-		[array]$QueryArgs = @()
+		Switch -Regex ($($PSCmdlet.ParameterSetName)) {
 
-		#Enumerate bound parameters to build query string for URL
-		$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
+			'^Query' {
 
-			$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
+				$QueryString = $Query
+
+				break
+
+			}
+
+			default {
+
+				[array]$QueryArgs = @()
+
+				#Enumerate bound parameters to build query string for URL
+				$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
+
+					$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
+
+				}
+
+				#Format URL query string
+				$QueryString = $QueryArgs -join '&'
+
+			}
 
 		}
 
-		#Format URL query string
-		$Query = $QueryArgs -join '&'
-
 		#Create hashtable of request parameters
 		$Request = @{
-			'URI'             = "$URL/$WebServiceName/api/Accounts?$Query"
+			'URI'             = "$URL/$WebServiceName/api/Accounts?$QueryString"
 			'Method'          = 'GET'
 			'ContentType'     = 'application/json'
 			'ErrorAction'     = 'Stop'
@@ -587,6 +765,10 @@
 			'DefaultCredentials' { $Request['UseDefaultCredentials'] = $true }
 			'CertificateThumbPrint' { $Request['CertificateThumbPrint'] = $CertificateThumbPrint }
 			'Certificate' { $Request['Certificate'] = $Certificate }
+			'QueryCredential' { $Request['Credential'] = $Credential }
+			'QueryDefaultCredentials' { $Request['UseDefaultCredentials'] = $true }
+			'QueryCertificateThumbPrint' { $Request['CertificateThumbPrint'] = $CertificateThumbPrint }
+			'QueryCertificate' { $Request['Certificate'] = $Certificate }
 		}
 
 		#in PSCore Use SslProtocol TLS1.2 & SkipCertificateCheck parameter

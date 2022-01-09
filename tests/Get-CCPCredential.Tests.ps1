@@ -65,6 +65,15 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		It 'sends request with expected Query' {
+			Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact' -URL 'https://SomeURL'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact'
+
+			} -Times 1 -Exactly -Scope It
+		}
+
 		It 'sends request to specified web service URL' {
 			$InputObj | Get-CCPCredential -WebServiceName DEV
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
