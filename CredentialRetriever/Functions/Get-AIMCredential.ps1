@@ -231,7 +231,7 @@ Function Get-AIMCredential {
 			'QueryFormat' {
 
 				#Add QueryFormat Command String
-				$Command = "$Command /p QueryFormat=$QueryFormat"
+				$Command = "$Command /p QueryFormat=`"$QueryFormat`""
 
 			}
 
@@ -250,7 +250,7 @@ Function Get-AIMCredential {
 			'Reason' {
 
 				#Add Reason to Command String
-				$Command = "$Command /p Reason=$Reason"
+				$Command = "$Command /p Reason=`"$Reason`""
 
 			}
 
