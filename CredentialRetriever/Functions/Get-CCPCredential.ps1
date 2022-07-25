@@ -128,7 +128,7 @@
 
 	Calls Invoke-RestMethod with a prepared query string that includes a custom file category and a space
 	#>
-	
+
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
 	[CmdletBinding(DefaultParameterSetName = 'Default')]
 	Param(

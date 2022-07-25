@@ -2,7 +2,7 @@
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 #Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace ".Tests.ps1"
+$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
 
 #Assume ModuleName from Repository Root folder
 $ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
@@ -13,7 +13,7 @@ $ModulePath = Resolve-Path "$Here\..\$ModuleName"
 #Define Path to Module Manifest
 $ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
-if( -not (Get-Module -Name $ModuleName -All)) {
+if ( -not (Get-Module -Name $ModuleName -All)) {
 
 	Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
@@ -35,7 +35,7 @@ Describe $FunctionName {
 
 	InModuleScope $ModuleName {
 
-		Context "General" {
+		Context 'General' {
 
 			BeforeEach {
 
@@ -44,20 +44,20 @@ Describe $FunctionName {
 				}
 
 				$InputObj = [pscustomobject]@{
-					ClientPath = "SomePath"
+					ClientPath = 'SomePath'
 				}
 
 			}
 
-			it "sets value of script scope variable" {
+			It 'sets value of script scope variable' {
 
 				$InputObj | Set-AIMConfiguration
 				$Script:AIM | Should Not BeNullOrEmpty
 			}
 
-			it "sets client path property value" {
+			It 'sets client path property value' {
 				$InputObj | Set-AIMConfiguration
-				$($Script:AIM.ClientPath) | Should Be "SomePath"
+				$($Script:AIM.ClientPath) | Should Be 'SomePath'
 			}
 
 		}
