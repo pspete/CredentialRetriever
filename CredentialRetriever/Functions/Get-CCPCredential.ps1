@@ -111,7 +111,7 @@
 	.EXAMPLE
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -CertificateThumbPrint $Cert_ThumbPrint
 
-	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
+	Calls Invoke-RestMethod with the supplied Certificate thumbprint
 
 	.EXAMPLE
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -Certificate $Cert
@@ -121,9 +121,14 @@
 	.EXAMPLE
 	Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact' -URL https://cyberark.yourcompany.com
 
-	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
+	Calls Invoke-RestMethod with a prepared query string
 
+	.EXAMPLE
+	Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS;CustomFileCategoryName1=Yourcompany Data' -URL https://cyberark.yourcompany.com
+
+	Calls Invoke-RestMethod with a prepared query string that includes a custom file category and a space
 	#>
+
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
 	[CmdletBinding(DefaultParameterSetName = 'Default')]
 	Param(

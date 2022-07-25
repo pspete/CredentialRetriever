@@ -32,7 +32,7 @@
     #>
 
 	[CmdLetBinding(SupportsShouldProcess)]
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "RemainingArgs", Justification = "Intentionally Unused Parameter")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'RemainingArgs', Justification = 'Intentionally Unused Parameter')]
 	param(
 
 		[Parameter(
@@ -45,7 +45,7 @@
 			Mandatory = $False,
 			ValueFromPipelineByPropertyName = $True
 		)]
-		[string]$Command = "GetPassword",
+		[string]$Command = 'GetPassword',
 
 		[Parameter(
 			Mandatory = $True,
@@ -72,13 +72,13 @@
 			Get-Variable -Name AIM -ErrorAction Stop
 
 			#Check we have the path to the required client executable
-			if($AIM.PSObject.Properties.Name -notcontains "ClientPath") {
+			if ($AIM.PSObject.Properties.Name -notcontains 'ClientPath') {
 
-				Write-Error "Heads Up!" -ErrorAction Stop
+				Write-Error 'Heads Up!' -ErrorAction Stop
 
 			}
 
-		} Catch {throw "CLIPasswordSDK.exe not found `nRun Set-AIMConfiguration to set path to CLIPasswordSDK"}
+		} Catch { throw "CLIPasswordSDK.exe not found `nRun Set-AIMConfiguration to set path to CLIPasswordSDK" }
 
 		#Create process
 		$Process = New-Object System.Diagnostics.Process
@@ -100,20 +100,20 @@
 			$Process.StartInfo.RedirectStandardError = $True
 			$Process.StartInfo.UseShellExecute = $False
 			$Process.StartInfo.CreateNoWindow = $True
-			$Process.StartInfo.WindowStyle = "hidden"
+			$Process.StartInfo.WindowStyle = 'hidden'
 
 			#Start Process
 			$Result = Start-AIMClientProcess -Process $Process -ErrorAction Stop
 
 			#Return Error or Result
-			if($Result.StdErr -match '((?:^[A-Z]{5}[0-9]{3}[A-Z])|(?:ERROR \(\d+\)))(?::)? (.+)$') {
+			if ($Result.StdErr -match '((?:^[A-Z]{5}[0-9]{3}[A-Z])|(?:ERROR \(\d+\)))(?::)? (.+)$') {
 
 				#APPAP008E Problem occurred while trying to use user in the Vault
 				Write-Debug "ErrorId: $($Matches[1])"
 				Write-Debug "Message: $($Matches[2])"
 				Write-Error -Message $Matches[2] -ErrorId $Matches[1]
 
-			} Else {$Result}
+			} Else { $Result }
 		}
 
 	}

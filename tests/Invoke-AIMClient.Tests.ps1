@@ -2,7 +2,7 @@
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 #Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace ".Tests.ps1"
+$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
 
 #Assume ModuleName from Repository Root folder
 $ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
@@ -34,11 +34,11 @@ Describe $FunctionName {
 
 	InModuleScope $ModuleName {
 
-		Context "Mandatory Parameters" {
+		Context 'Mandatory Parameters' {
 
-			$Parameters = @{Parameter = 'CommandParameters'}
+			$Parameters = @{Parameter = 'CommandParameters' }
 
-			It "specifies parameter <Parameter> as mandatory" -TestCases $Parameters {
+			It 'specifies parameter <Parameter> as mandatory' -TestCases $Parameters {
 
 				param($Parameter)
 
@@ -50,7 +50,7 @@ Describe $FunctionName {
 
 		}
 
-		Context "Default" {
+		Context 'Default' {
 
 			BeforeEach {
 
@@ -59,64 +59,64 @@ Describe $FunctionName {
 				}
 
 				$InputObj = [pscustomobject]@{
-					CommandParameters = "Some Command Parameters"
+					CommandParameters = 'Some Command Parameters'
 				}
 
 
 			}
 
-			It "tests path" {
+			It 'tests path' {
 
-				{$InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe} | Should Throw
+				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw
 
 			}
 
 			It "throws if `$AIM variable not set in script scope" {
 
-				{$InputObj | Invoke-AIMClient} | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw
 
 			}
 
 			It "throws if `$AIM variable does not have ClientPath property" {
 
 				$object = [PSCustomObject]@{
-					prop1 = "Value1"
-					prop2 = "Value2"
+					prop1 = 'Value1'
+					prop2 = 'Value2'
 				}
 				New-Variable -Name AIM -Value $object
 
-				{$InputObj | Invoke-AIMClient} | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw
 
 			}
 
 			It "throws if `$AIM.ClientPath is not resolvable" {
 
 				$object = [PSCustomObject]@{
-					ClientPath = ".\RandomFile.Exe"
-					prop2      = "Value2"
+					ClientPath = '.\RandomFile.Exe'
+					prop2      = 'Value2'
 				}
 				New-Variable -Name AIM -Value $object
 
-				{$InputObj | Invoke-AIMClient} | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw
 
 			}
 
 			It "no throw if `$AIM.ClientPath is resolvable" {
 
 				$object = [PSCustomObject]@{
-					ClientPath = ".\README.md"
-					prop2      = "Value2"
+					ClientPath = '.\README.md'
+					prop2      = 'Value2'
 				}
 				New-Variable -Name AIM -Value $object
 
-				{$InputObj | Invoke-AIMClient} | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw
 
 			}
 
 
 		}
 
-		Context "Set-AIMConfiguration" {
+		Context 'Set-AIMConfiguration' {
 
 			BeforeEach {
 
@@ -129,71 +129,71 @@ Describe $FunctionName {
 				}
 
 				$InputObj = [pscustomobject]@{
-					CommandParameters = "Some Command Parameters"
+					CommandParameters = 'Some Command Parameters'
 				}
 
 
 			}
 
-			it "does not throw after Set-AIMConfiguration has set the `$AIM variable" {
+			It "does not throw after Set-AIMConfiguration has set the `$AIM variable" {
 
-				Set-AIMConfiguration -ClientPath "C:\SomePath\CLIPasswordSDK.exe"
-				{$InputObj | Invoke-AIMClient} | Should Not throw
+				Set-AIMConfiguration -ClientPath 'C:\SomePath\CLIPasswordSDK.exe'
+				{ $InputObj | Invoke-AIMClient } | Should Not throw
 
 			}
 
-			it "does not require Set-AIMConfiguration to be run more than once" {
+			It 'does not require Set-AIMConfiguration to be run more than once' {
 
-				{$InputObj | Invoke-AIMClient} | Should Not throw
+				{ $InputObj | Invoke-AIMClient } | Should Not throw
 
 			}
 
 		}
 
-		Context "Reporting Errors" {
+		Context 'Reporting Errors' {
 
 			BeforeEach {
 
 				$InputObj = [pscustomobject]@{
-					CommandParameters = "Some Command Parameters"
+					CommandParameters = 'Some Command Parameters'
 				}
 
 
 			}
 
-			it "reports 'ErrorCode Message' format errors on stderr" {
+			It "reports 'ErrorCode Message' format errors on stderr" {
 
 				Mock Start-AIMClientProcess -MockWith {
 					[pscustomobject]@{
-						"ExitCode" = -1
-						"StdOut"   = $null
-						"StdErr"   = "APPAP008E Problem occurred while trying to use user in the Vault"
+						'ExitCode' = -1
+						'StdOut'   = $null
+						'StdErr'   = 'APPAP008E Problem occurred while trying to use user in the Vault'
 					}
 
 				}
 
-				{$InputObj | Invoke-AIMClient -ErrorAction Stop} | Should Throw "Problem occurred while trying to use user in the Vault"
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'Problem occurred while trying to use user in the Vault'
 
 			}
 
-			it "reports '(ErrorCode) Message' format errors on stderr" {
+			It "reports '(ErrorCode) Message' format errors on stderr" {
 
 				Mock Start-AIMClientProcess -MockWith {
 					[pscustomobject]@{
-						"ExitCode" = -1
-						"StdOut"   = $null
-						"StdErr"   = "ERROR (999) Something Awful."
+						'ExitCode' = -1
+						'StdOut'   = $null
+						'StdErr'   = 'ERROR (999) Something Awful.'
 					}
 
 				}
 
-				{$InputObj | Invoke-AIMClient -ErrorAction Stop} | Should Throw "Something Awful."
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'Something Awful.'
 
 			}
 
 		}
 
-		Context "Command Arguments" {
+		Context 'Command Arguments' {
 			Mock Test-Path -MockWith {
 				$true
 			}
@@ -203,10 +203,10 @@ Describe $FunctionName {
 			}
 
 			$InputObj = [pscustomobject]@{
-				CommandParameters = "Some Command Parameters"
+				CommandParameters = 'Some Command Parameters'
 			}
 
-			It "executes command with expected arguments" {
+			It 'executes command with expected arguments' {
 
 				$InputObj | Invoke-AIMClient
 

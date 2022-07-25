@@ -23,7 +23,7 @@
     #>
 
 	[CmdLetBinding(SupportsShouldProcess)]
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess", "", Justification = "ShouldProcess handling is in Invoke-AIMClient")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'ShouldProcess handling is in Invoke-AIMClient')]
 	param(
 
 		[Parameter(
@@ -54,9 +54,9 @@
 
 		[PSCustomObject] @{
 
-			"ExitCode" = $Process.ExitCode
-			"StdOut"   = $StdOut
-			"StdErr"   = $StdErr
+			'ExitCode' = $Process.ExitCode
+			'StdOut'   = $StdOut
+			'StdErr'   = $StdErr
 
 		}
 

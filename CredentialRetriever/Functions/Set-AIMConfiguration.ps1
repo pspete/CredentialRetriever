@@ -40,7 +40,7 @@ Function Set-AIMConfiguration {
 
 	Process {
 
-		If ($PSBoundParameters.Keys -contains "ClientPath") {
+		If ($PSBoundParameters.Keys -contains 'ClientPath') {
 
 			$Defaults | Add-Member -MemberType NoteProperty -Name ClientPath -Value $ClientPath
 
