@@ -1,5 +1,10 @@
 # CredentialRetriever Changelog
 
+## 3.10.56
+
+- Update `Get-CCPCredential`
+  - Allow `Certificate`/`CertificateThumbprint` to be specified together with `Credential`/`UseDefaultCredential` parameters.
+
 ## 3.9.48 (July 25th 2022)
 
 - Update Help Examples

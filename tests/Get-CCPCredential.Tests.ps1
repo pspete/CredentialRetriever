@@ -94,7 +94,7 @@ InModuleScope $ModuleName {
 
 		}
 
-		If ($IsCoreCLR) {
+		If ($PSEdition -eq 'Core') {
 
 			It 'specifies TLS12 SSL Protocol' {
 
