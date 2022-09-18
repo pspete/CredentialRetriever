@@ -29,7 +29,7 @@ Function Skip-CertificateCheck {
         }
 '@
 
-	if ( -not ($IsCoreCLR)) {
+	if ($PSEdition -ne 'Core') {
 
 		$CSharpCodeProvider = New-Object Microsoft.CSharp.CSharpCodeProvider
 		$PolicyResult = $CSharpCodeProvider.CompileAssemblyFromSource($CompilerParameters, $CertificatePolicy)

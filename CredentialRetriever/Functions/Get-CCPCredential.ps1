@@ -410,7 +410,7 @@
 		}
 
 		#in PSCore Use SslProtocol TLS1.2 & SkipCertificateCheck parameter
-		if ($IsCoreCLR) {
+		if ($PSEdition -eq 'Core') {
 
 			$Request.Add('SslProtocol', 'TLS12')
 			$Request.Add('SkipCertificateCheck', $SkipCertificateCheck.IsPresent)
