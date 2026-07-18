@@ -243,6 +243,20 @@ InModuleScope $ModuleName {
 			($result.ToCredential()).GetNetworkCredential().Password | Should Be 'SomePassword'
 		}
 
+		It 'sends POST request when UsePostMethod is specified' {
+			$InputObj | Get-CCPCredential -UsePostMethod
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+				$Method -eq 'POST'
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'converts Query parameter to JSON for POST request' {
+			Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS' -URL 'https://SomeURL' -UsePostMethod
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+				$Method -eq 'POST' -and $Body -like '*AppID*'
+			} -Times 1 -Exactly -Scope It
+		}
+
 	}
 
 }

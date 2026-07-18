@@ -77,6 +77,11 @@
 
 	Use at your own risk.
 
+	.PARAMETER UsePostMethod
+	Uses POST method instead of GET method for the request.
+	Authentication details will be sent in the request body instead of the URL.
+	Requires CyberArk Central Credential Provider version 14.2 or later.
+
 	.EXAMPLE
 	Get-CCPCredential -AppID PSScript -Safe PSAccounts -Object PSPlatform-AccountName -URL https://cyberark.yourcompany.com
 
@@ -88,6 +93,12 @@
 
 	Uses the PowerShell App ID to search for and retrieve the password for the svc-psProvision account in the PSAccounts safe
 	from the https://cyberark-dev.yourcompany.com/DevAIM CCP Web Service.
+
+	.EXAMPLE
+	Get-CCPCredential -AppID PowerShell -Safe PSAccounts -UserName svc-psProvision -WebServiceName DevAIM -UsePostMethod -URL https://cyberark-dev.yourcompany.com
+
+	Uses the PowerShell App ID to search for and retrieve the password for the svc-psProvision account in the PSAccounts safe
+	from the https://cyberark-dev.yourcompany.com/DevAIM CCP Web Service using POST method.
 
 	.EXAMPLE
 	$result = Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com
@@ -337,7 +348,22 @@
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Query'
 		)]
-		[switch]$SkipCertificateCheck
+		[switch]
+		$SkipCertificateCheck,
+
+		# Use POST method for request to CCP
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $false,
+			ParameterSetName = 'Default'
+		)]
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $false,
+			ParameterSetName = 'Query'
+		)]
+		[switch]
+		$UsePostMethod
 	)
 
 	Begin {
@@ -345,7 +371,7 @@
 		#Collection of parameters which are to be excluded from the request URL
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck'
+		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'UsePostMethod'
 
 		#If Tls12 Security Protocol is available
 		if (([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
@@ -367,7 +393,17 @@
 
 			'Query' {
 
-				$QueryString = $Query
+				if ($UsePostMethod) {
+					# Build JSON body from query string for POST method (simplified)
+					$PostBody = @{}
+					foreach ($pair in $Query -split '&') {
+						$key,$value = $pair -split '=',2
+						if ($key) { $PostBody[$key] = [System.Uri]::UnescapeDataString($value) }
+					}
+					$PostBody = $PostBody | ConvertTo-Json
+				} else {
+					$QueryString = $Query
+				}
 
 				break
 
@@ -384,24 +420,42 @@
 
 				}
 
-				#Format URL query string
-				$QueryString = $QueryArgs -join '&'
+				if ($UsePostMethod) {
+					#For POST method, parameters go in body as JSON, URL has no query string
+					$PostBodyObject = @{}
+					$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
+						$PostBodyObject[$_] = $PSBoundParameters[$_]
+					}
+					$PostBody = $PostBodyObject | ConvertTo-Json
+				} else {
+					#For GET method, parameters go in URL query string
+					$QueryString = $QueryArgs -join '&'
+				}
 
 			}
 
 		}
 
-		#Create hashtable of request parameters
+		$URI = "$URL/$WebServiceName/api/Accounts"
+		if (-not $UsePostMethod -and $QueryString) {
+			$URI += "?$QueryString"
+		}
+
 		$Request = @{
-			'URI'             = "$URL/$WebServiceName/api/Accounts?$QueryString"
-			'Method'          = 'GET'
+			'URI'             = $URI
+			'Method'          = if ($UsePostMethod) { 'POST' } else { 'GET' }
 			'ContentType'     = 'application/json'
 			'ErrorAction'     = 'Stop'
 			'ErrorVariable'   = 'RequestError'
 			'UseBasicParsing' = $true
 		}
 
-		#Add authentication parameters to request
+		# Add body for POST requests
+		if ($UsePostMethod) {
+			$Request['Body'] = $PostBody
+		}
+
+		# Add authentication parameters to request
 		Switch ($($PSBoundParameters.keys)) {
 			{ $PSItem -contains 'Credential' } { $Request['Credential'] = $Credential }
 			{ $PSItem -contains 'UseDefaultCredentials' } { $Request['UseDefaultCredentials'] = $true }
