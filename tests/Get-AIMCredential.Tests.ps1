@@ -27,6 +27,8 @@ InModuleScope $ModuleName {
 
 		BeforeEach {
 
+			$Prefix = if ($IsWindows -eq $false) { '-' } else { '/' }
+
 			Mock Invoke-AIMClient -MockWith {
 				[pscustomobject]@{
 					'ExitCode' = 0
@@ -96,17 +98,19 @@ InModuleScope $ModuleName {
 
 		It 'sends expected command' {
 			$Expected = @(
-				'/p Query="Safe=SomeSafe;Folder=SomeFolder;Object=SomeObject;UserName=SomeUser"'
-				'/p QueryFormat="exact"'
-				'/p RequiredProps=UserName,Prop2,Prop3,Prop4'
-				'/p Reason="SomeReason"'
-				'/p ConnectionParms.Port=123'
-				'/p ConnectionParms.Timeout=666'
-			)
+				'{0}p Query="Safe=SomeSafe;Folder=SomeFolder;Object=SomeObject;UserName=SomeUser"'
+				'{0}p QueryFormat="exact"'
+				'{0}p RequiredProps=UserName,Prop2,Prop3,Prop4'
+				'{0}p Reason="SomeReason"'
+				'{0}p ConnectionParms.Port=123'
+				'{0}p ConnectionParms.Timeout=666'
+			) | ForEach-Object { $_ -f $Prefix }
+			$Start = '{0}p AppDescs.AppID="SomeApp" ' -f $Prefix
+			$End = ' {0}o PassProps.UserName,PassProps.Prop2,PassProps.Prop3,PassProps.Prop4,Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix
 			$InputObj | Get-AIMCredential
 			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
-				$CommandParameters.StartsWith('/p AppDescs.AppID="SomeApp" ') -and
-				$CommandParameters.EndsWith(' /o PassProps.UserName,PassProps.Prop2,PassProps.Prop3,PassProps.Prop4,Password,PasswordChangeInProcess /d #_-_#') -and
+				$CommandParameters.StartsWith($Start) -and
+				$CommandParameters.EndsWith($End) -and
 				@($Expected | Where-Object { -not $CommandParameters.Contains($_) }).Count -eq 0
 			} -Times 1 -Exactly -Scope It
 		}
@@ -118,10 +122,10 @@ InModuleScope $ModuleName {
 			)
 			$Objects | Get-AIMCredential
 			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
-				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=Safe1;Object=Object1" /o Password,PasswordChangeInProcess /d #_-_#'
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=Safe1;Object=Object1" {0}o Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
 			} -Times 1 -Exactly -Scope It
 			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
-				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=Safe2;Object=Object2" /o Password,PasswordChangeInProcess /d #_-_#'
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=Safe2;Object=Object2" {0}o Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
 			} -Times 1 -Exactly -Scope It
 		}
 
@@ -148,7 +152,15 @@ InModuleScope $ModuleName {
 		It 'sends free query' {
 			Get-AIMCredential -AppID SomeApp -Query 'Safe=SomeSafe;CustomProp=Some Value' -QueryFormat regexp
 			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
-				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=SomeSafe;CustomProp=Some Value" /p QueryFormat="regexp" /o Password,PasswordChangeInProcess /d #_-_#'
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=SomeSafe;CustomProp=Some Value" {0}p QueryFormat="regexp" {0}o Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'sends command with - prefix on Linux' -Skip:($IsWindows -eq $true) {
+			if ($PSVersionTable.PSEdition -eq 'Desktop') { $IsWindows = $false }
+			Get-AIMCredential -AppID SomeApp -Safe SomeSafe -Reason SomeReason
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq '-p AppDescs.AppID="SomeApp" -p Query="Safe=SomeSafe" -p Reason="SomeReason" -o Password,PasswordChangeInProcess -d #_-_#'
 			} -Times 1 -Exactly -Scope It
 		}
 
@@ -159,7 +171,7 @@ InModuleScope $ModuleName {
 		It 'sends FailRequestOnPasswordChange' {
 			Get-AIMCredential -AppID SomeApp -Safe SomeSafe -FailRequestOnPasswordChange
 			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
-				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=SomeSafe" /p FailRequestOnPasswordChange=true /o Password,PasswordChangeInProcess /d #_-_#'
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=SomeSafe" {0}p FailRequestOnPasswordChange=true {0}o Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
 			} -Times 1 -Exactly -Scope It
 		}
 

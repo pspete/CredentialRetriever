@@ -241,6 +241,9 @@ Function Get-AIMCredential {
 		#Delimiter for separating the output fields
 		$Separator = '#_-_#'
 
+		#CLIPasswordSDK argument prefix: / on Windows, - on Linux
+		$Prefix = if ($IsWindows -eq $false) { '-' } else { '/' }
+
 	}
 
 	Process {
@@ -251,7 +254,7 @@ Function Get-AIMCredential {
 		[hashtable]$Output = @{ }
 
 		#Initial Command String
-		$Command = "/p AppDescs.AppID=`"$AppID`""
+		$Command = "${Prefix}p AppDescs.AppID=`"$AppID`""
 
 		If ($PSCmdlet.ParameterSetName -eq 'Query') {
 
@@ -270,7 +273,7 @@ Function Get-AIMCredential {
 		If ($QueryString) {
 
 			#Add Query to Command String
-			$Command = "$Command /p Query=""$QueryString"""
+			$Command = "$Command ${Prefix}p Query=""$QueryString"""
 
 		}
 
@@ -280,7 +283,7 @@ Function Get-AIMCredential {
 			'QueryFormat' {
 
 				#Add QueryFormat Command String
-				$Command = "$Command /p QueryFormat=`"$QueryFormat`""
+				$Command = "$Command ${Prefix}p QueryFormat=`"$QueryFormat`""
 
 			}
 
@@ -292,28 +295,28 @@ Function Get-AIMCredential {
 					$ReturnProps += "PassProps.$_"
 				}
 
-				$Command = "$Command /p RequiredProps=$($RequiredProps -join ',')"
+				$Command = "$Command ${Prefix}p RequiredProps=$($RequiredProps -join ',')"
 
 			}
 
 			'Reason' {
 
 				#Add Reason to Command String
-				$Command = "$Command /p Reason=`"$Reason`""
+				$Command = "$Command ${Prefix}p Reason=`"$Reason`""
 
 			}
 
 			'FailRequestOnPasswordChange' {
 
 				#Add FailRequestOnPasswordChange to Command String
-				$Command = "$Command /p FailRequestOnPasswordChange=$("$($FailRequestOnPasswordChange.IsPresent)".ToLower())"
+				$Command = "$Command ${Prefix}p FailRequestOnPasswordChange=$("$($FailRequestOnPasswordChange.IsPresent)".ToLower())"
 
 			}
 
 			{ $ConnectionParms -contains $PSItem } {
 
 				#Add ConnectionParms to Command String
-				$Command = "$Command /p ConnectionParms.$_=$($PSBoundParameters[$_])"
+				$Command = "$Command ${Prefix}p ConnectionParms.$_=$($PSBoundParameters[$_])"
 
 			}
 
@@ -326,7 +329,7 @@ Function Get-AIMCredential {
 		$ReturnProps = $ReturnProps -join ','
 
 		#Build Command String
-		$Command = "$Command /o $ReturnProps /d $Separator"
+		$Command = "$Command ${Prefix}o $ReturnProps ${Prefix}d $Separator"
 
 		#Invoke Credential Provider
 		$Result = Invoke-AIMClient -CommandParameters $Command
