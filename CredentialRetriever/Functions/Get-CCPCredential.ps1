@@ -92,6 +92,14 @@
 	GET sends request parameters in the URL query string.
 	POST sends request parameters as a JSON body, and requires Central Credential Provider version 14.2 or later.
 
+	.PARAMETER AsCredential
+	Outputs the username & password as a PSCredential object, instead of the result object.
+	Cannot be used with AsSecureString.
+
+	.PARAMETER AsSecureString
+	Outputs the password as a SecureString, instead of the result object.
+	Cannot be used with AsCredential.
+
 	.EXAMPLE
 	Get-CCPCredential -AppID PSScript -Safe PSAccounts -Object PSPlatform-AccountName -URL https://cyberark.yourcompany.com
 
@@ -113,7 +121,7 @@
 	.EXAMPLE
 	$result = Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com
 
-	$result.ToSecureSting()
+	$result.ToSecureString()
 
 	Returns the password retrieved from CCP as a Secure String
 
@@ -123,6 +131,11 @@
 	$result.ToCredential()
 
 	Returns the username & password retrieved from CCP as a PSCredential object
+
+	.EXAMPLE
+	$credential = Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -AsCredential
+
+	Outputs the username & password retrieved from CCP as a PSCredential object
 
 	.EXAMPLE
 	Get-CCPCredential -AppID PS -Safe PS -Object PSP-AccountName -URL https://cyberark.yourcompany.com -UseDefaultCredentials
@@ -414,7 +427,17 @@
 		)]
 		[ValidateSet('GET', 'POST')]
 		[string]
-		$Method = 'GET'
+		$Method = 'GET',
+
+		# Output PSCredential object
+		[Parameter(Mandatory = $false)]
+		[switch]
+		$AsCredential,
+
+		# Output password as SecureString
+		[Parameter(Mandatory = $false)]
+		[switch]
+		$AsSecureString
 	)
 
 	Begin {
@@ -422,7 +445,11 @@
 		#Collection of parameters which are to be excluded from the request
 		[array]$ExcludedParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$ExcludedParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$ExcludedParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'Method'
+		[array]$ExcludedParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'Method', 'AsCredential', 'AsSecureString'
+
+		if ($AsCredential -and $AsSecureString) {
+			throw 'AsCredential and AsSecureString cannot be used together.'
+		}
 
 		if ($PSEdition -ne 'Core') {
 
@@ -588,7 +615,13 @@
 			} -Force
 
 			#Return the result from CCP
-			$result
+			if ($AsCredential) {
+				$result.ToCredential()
+			} elseif ($AsSecureString) {
+				$result.ToSecureString()
+			} else {
+				$result
+			}
 
 		}
 

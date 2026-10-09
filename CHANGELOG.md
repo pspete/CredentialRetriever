@@ -13,6 +13,7 @@
 - CLIPasswordSDK path is detected from its default install location when no configuration has been saved.
 - Module manifest: `CompatiblePSEditions` (`Desktop`, `Core`).
 - `Get-AIMCredential`: Linux support. CLIPasswordSDK arguments use the `-` prefix on Linux (`/` on Windows).
+- `Get-CCPCredential`, `Get-AIMCredential`: `AsCredential` and `AsSecureString` switches, to output a `PSCredential` or `SecureString` instead of the result object. `Get-AIMCredential -AsCredential` requests the `UserName` property automatically.
 
 ### Changed
 

@@ -54,6 +54,15 @@ Function Get-AIMCredential {
 	.PARAMETER FailRequestOnPasswordChange
 	Return an error if the request is made while a password change process is underway.
 
+	.PARAMETER AsCredential
+	Outputs the username & password as a PSCredential object, instead of the result object.
+	The UserName property is requested automatically.
+	Cannot be used with AsSecureString.
+
+	.PARAMETER AsSecureString
+	Outputs the password as a SecureString, instead of the result object.
+	Cannot be used with AsCredential.
+
 	.EXAMPLE
 	Get-AIMCredential -AppID YourApp -Safe YourSafe -Folder Root -UserName YourUser
 
@@ -77,6 +86,11 @@ Function Get-AIMCredential {
 
 	Returns the password and username of the account found via a free query.
 	Properties which do not exist, or have no value, are returned as $null.
+
+	.EXAMPLE
+	$credential = Get-AIMCredential -AppID YourApp -Safe YourSafe -Object YourObject -AsCredential
+
+	Outputs the username & password as a PSCredential object.
 
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
@@ -218,7 +232,17 @@ Function Get-AIMCredential {
 			ValueFromPipelineByPropertyName = $true
 		)]
 		[switch]
-		$FailRequestOnPasswordChange
+		$FailRequestOnPasswordChange,
+
+		# Output PSCredential object
+		[Parameter(Mandatory = $false)]
+		[switch]
+		$AsCredential,
+
+		# Output password as SecureString
+		[Parameter(Mandatory = $false)]
+		[switch]
+		$AsSecureString
 	)
 
 	Begin {
@@ -243,6 +267,10 @@ Function Get-AIMCredential {
 
 		#CLIPasswordSDK argument prefix: / on Windows, - on Linux
 		$Prefix = if ($IsWindows -eq $false) { '-' } else { '/' }
+
+		if ($AsCredential -and $AsSecureString) {
+			throw 'AsCredential and AsSecureString cannot be used together.'
+		}
 
 	}
 
@@ -287,18 +315,6 @@ Function Get-AIMCredential {
 
 			}
 
-			'RequiredProps' {
-
-				#Add RequiredProps to Command String
-				$RequiredProps | ForEach-Object {
-
-					$ReturnProps += "PassProps.$_"
-				}
-
-				$Command = "$Command ${Prefix}p RequiredProps=$($RequiredProps -join ',')"
-
-			}
-
 			'Reason' {
 
 				#Add Reason to Command String
@@ -319,6 +335,22 @@ Function Get-AIMCredential {
 				$Command = "$Command ${Prefix}p ConnectionParms.$_=$($PSBoundParameters[$_])"
 
 			}
+
+		}
+
+		#UserName is required for PSCredential output
+		$Props = @($RequiredProps | Where-Object { $_ })
+		If ($AsCredential -and ($Props -notcontains 'UserName')) { $Props += 'UserName' }
+
+		If ($Props.Count -gt 0) {
+
+			#Add RequiredProps to Command String
+			$Props | ForEach-Object {
+
+				$ReturnProps += "PassProps.$_"
+			}
+
+			$Command = "$Command ${Prefix}p RequiredProps=$($Props -join ',')"
 
 		}
 
@@ -373,7 +405,13 @@ Function Get-AIMCredential {
 			} -Force
 
 			#Return the result from AIM CP
-			$OutputObject
+			if ($AsCredential) {
+				$OutputObject.ToCredential()
+			} elseif ($AsSecureString) {
+				$OutputObject.ToSecureString()
+			} else {
+				$OutputObject
+			}
 
 		}
 

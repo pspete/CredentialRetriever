@@ -373,6 +373,34 @@ InModuleScope $ModuleName {
 			($result.ToCredential()).GetNetworkCredential().Password | Should Be 'SomePassword'
 		}
 
+		It 'outputs PSCredential with AsCredential' {
+			Mock Invoke-RestMethod { [pscustomobject]@{'content' = 'SomePassword'; 'username' = 'SomeUser' } }
+			$result = $InputObj | Get-CCPCredential -AsCredential
+			$result | Should BeOfType System.Management.Automation.PSCredential
+			$result.UserName | Should Be 'SomeUser'
+			$result.GetNetworkCredential().Password | Should Be 'SomePassword'
+		}
+
+		It 'outputs SecureString with AsSecureString' {
+			Mock Invoke-RestMethod { [pscustomobject]@{'content' = 'SomePassword'; 'username' = 'SomeUser' } }
+			$result = $InputObj | Get-CCPCredential -AsSecureString
+			$result | Should BeOfType System.Security.SecureString
+			(New-Object System.Management.Automation.PSCredential('SomeUser', $result)).GetNetworkCredential().Password | Should Be 'SomePassword'
+		}
+
+		It 'does not send AsCredential or AsSecureString in request' {
+			$InputObj | Get-CCPCredential -AsCredential
+			$InputObj | Get-CCPCredential -AsSecureString
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=SomeApplication'
+			} -Times 2 -Exactly -Scope It
+		}
+
+		It 'throws when AsCredential and AsSecureString are used together' {
+			{ $InputObj | Get-CCPCredential -AsCredential -AsSecureString } | Should Throw 'cannot be used together'
+			Assert-MockCalled Invoke-RestMethod -Times 0 -Exactly -Scope It
+		}
+
 		It 'does not send a body for GET requests' {
 			$InputObj | Get-CCPCredential
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {

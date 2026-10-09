@@ -84,6 +84,45 @@ InModuleScope $ModuleName {
 			($result.ToCredential()).GetNetworkCredential().Password | Should Be 'SomePassword'
 		}
 
+		It 'outputs PSCredential with AsCredential' {
+			$result = $InputObj | Get-AIMCredential -AsCredential
+			$result | Should BeOfType System.Management.Automation.PSCredential
+			$result.UserName | Should Be 'SomeUser'
+			$result.GetNetworkCredential().Password | Should Be 'SomePassword'
+		}
+
+		It 'requests UserName with AsCredential' {
+			Get-AIMCredential -AppID SomeApp -Safe SomeSafe -AsCredential
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=SomeSafe" {0}p RequiredProps=UserName {0}o PassProps.UserName,Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'adds UserName to RequiredProps with AsCredential' {
+			Get-AIMCredential -AppID SomeApp -Safe SomeSafe -RequiredProps Address -AsCredential
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq ('{0}p AppDescs.AppID="SomeApp" {0}p Query="Safe=SomeSafe" {0}p RequiredProps=Address,UserName {0}o PassProps.Address,PassProps.UserName,Password,PasswordChangeInProcess {0}d #_-_#' -f $Prefix)
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'does not repeat UserName in RequiredProps with AsCredential' {
+			$InputObj | Get-AIMCredential -AsCredential
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters.Contains('p RequiredProps=UserName,Prop2,Prop3,Prop4 ')
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'outputs SecureString with AsSecureString' {
+			$result = $InputObj | Get-AIMCredential -AsSecureString
+			$result | Should BeOfType System.Security.SecureString
+			(New-Object System.Management.Automation.PSCredential('SomeUser', $result)).GetNetworkCredential().Password | Should Be 'SomePassword'
+		}
+
+		It 'throws when AsCredential and AsSecureString are used together' {
+			{ $InputObj | Get-AIMCredential -AsCredential -AsSecureString } | Should Throw 'cannot be used together'
+			Assert-MockCalled Invoke-AIMClient -Times 0 -Exactly -Scope It
+		}
+
 		It 'outputs expected password containing comma' {
 			Mock Invoke-AIMClient -MockWith {
 				[pscustomobject]@{
