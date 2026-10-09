@@ -1,11 +1,11 @@
+#InModuleScope is resolved during Pester's discovery phase, so the module must be imported here
+#rather than from BeforeAll, which does not run until the later run phase.
+
 #Get Current Directory
-$Here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Here = Split-Path -Parent $PSCommandPath
 
-#Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
-
-#Assume ModuleName from Repository Root folder
-$ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
+#Module Name
+$ModuleName = 'CredentialRetriever'
 
 #Resolve Path to Module Directory
 $ModulePath = Resolve-Path "$Here\..\$ModuleName"
@@ -19,9 +19,9 @@ if ( -not (Get-Module -Name $ModuleName -All)) {
 
 }
 
-Describe $FunctionName {
+Describe 'Get-AIMConfiguration' {
 
-	InModuleScope $ModuleName {
+	InModuleScope 'CredentialRetriever' {
 
 		Context 'General' {
 
@@ -34,7 +34,7 @@ Describe $FunctionName {
 			It 'outputs configuration' {
 
 				$Script:AIM = [pscustomobject]@{ ClientPath = 'SomePath' }
-				(Get-AIMConfiguration).ClientPath | Should Be 'SomePath'
+				(Get-AIMConfiguration).ClientPath | Should -Be 'SomePath'
 
 			}
 
@@ -43,19 +43,19 @@ Describe $FunctionName {
 				Mock Test-Path -MockWith { $true }
 				Mock Export-Clixml -MockWith { }
 				Set-AIMConfiguration -ClientPath 'OtherPath'
-				(Get-AIMConfiguration).ClientPath | Should Be 'OtherPath'
+				(Get-AIMConfiguration).ClientPath | Should -Be 'OtherPath'
 
 			}
 
 			It 'outputs nothing if configuration not set' {
 
-				Get-AIMConfiguration | Should BeNullOrEmpty
+				Get-AIMConfiguration | Should -BeNullOrEmpty
 
 			}
 
 			It 'does not throw if configuration not set' {
 
-				{ Get-AIMConfiguration -ErrorAction Stop } | Should Not Throw
+				{ Get-AIMConfiguration -ErrorAction Stop } | Should -Not -Throw
 
 			}
 

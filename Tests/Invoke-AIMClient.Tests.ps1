@@ -1,11 +1,11 @@
+#InModuleScope is resolved during Pester's discovery phase, so the module must be imported here
+#rather than from BeforeAll, which does not run until the later run phase.
+
 #Get Current Directory
-$Here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Here = Split-Path -Parent $PSCommandPath
 
-#Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
-
-#Assume ModuleName from Repository Root folder
-$ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
+#Module Name
+$ModuleName = 'CredentialRetriever'
 
 #Resolve Path to Module Directory
 $ModulePath = Resolve-Path "$Here\..\$ModuleName"
@@ -13,35 +13,22 @@ $ModulePath = Resolve-Path "$Here\..\$ModuleName"
 #Define Path to Module Manifest
 $ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
-#Module must be re-imported for tests to complete
-Remove-Module -Name $ModuleName -Force -ErrorAction SilentlyContinue
-Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
+if ( -not (Get-Module -Name $ModuleName -All)) {
 
-BeforeAll {
-
-	#$Script:RequestBody = $null
+	Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
 }
 
-AfterAll {
+Describe 'Invoke-AIMClient' {
 
-	#$Script:RequestBody = $null
-
-}
-
-Describe $FunctionName {
-
-	InModuleScope $ModuleName {
+	InModuleScope 'CredentialRetriever' {
 
 		Context 'Mandatory Parameters' {
 
 			$Parameters = @{Parameter = 'CommandParameters' }
 
 			It 'specifies parameter <Parameter> as mandatory' -TestCases $Parameters {
-
-				param($Parameter)
-
-				(Get-Command Invoke-AIMClient).Parameters["$Parameter"].Attributes.Mandatory | Should Be $true
+				(Get-Command Invoke-AIMClient).Parameters["$Parameter"].Attributes.Mandatory | Should -Be $true
 
 			}
 
@@ -68,13 +55,13 @@ Describe $FunctionName {
 
 			It 'throws if ClientPath is not resolvable' {
 
-				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw "CLIPasswordSDK not found at '.\RandomFile.exe'"
+				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should -Throw "*CLIPasswordSDK not found at '.\RandomFile.exe'*"
 
 			}
 
 			It "throws if `$AIM variable not set in script scope" {
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw 'CLIPasswordSDK path not set'
+				{ $InputObj | Invoke-AIMClient } | Should -Throw '*CLIPasswordSDK path not set*'
 
 			}
 
@@ -86,7 +73,7 @@ Describe $FunctionName {
 				}
 				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw 'CLIPasswordSDK path not set'
+				{ $InputObj | Invoke-AIMClient } | Should -Throw '*CLIPasswordSDK path not set*'
 
 			}
 
@@ -98,26 +85,26 @@ Describe $FunctionName {
 				}
 				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw "CLIPasswordSDK not found at '.\RandomFile.Exe'"
+				{ $InputObj | Invoke-AIMClient } | Should -Throw "*CLIPasswordSDK not found at '.\RandomFile.Exe'*"
 
 			}
 
 			It 'does not start process if ClientPath is not resolvable' {
 
-				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw
-				Assert-MockCalled Start-AIMClientProcess -Times 0 -Exactly -Scope It
+				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should -Throw
+				Should -Invoke Start-AIMClientProcess -Times 0 -Exactly
 
 			}
 
 			It "no throw if `$AIM.ClientPath is resolvable" {
 
 				$object = [PSCustomObject]@{
-					ClientPath = '.\README.md'
+					ClientPath = $PSCommandPath
 					prop2      = 'Value2'
 				}
 				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Not Throw
+				{ $InputObj | Invoke-AIMClient } | Should -Not -Throw
 
 			}
 
@@ -126,7 +113,7 @@ Describe $FunctionName {
 
 		Context 'Set-AIMConfiguration' {
 
-			BeforeEach {
+			BeforeAll {
 
 				Mock Export-Clixml -MockWith { }
 
@@ -142,19 +129,20 @@ Describe $FunctionName {
 					CommandParameters = 'Some Command Parameters'
 				}
 
+				Set-AIMConfiguration -ClientPath 'C:\SomePath\CLIPasswordSDK.exe'
 
 			}
 
 			It "does not throw after Set-AIMConfiguration has set the `$AIM variable" {
 
-				Set-AIMConfiguration -ClientPath 'C:\SomePath\CLIPasswordSDK.exe'
-				{ $InputObj | Invoke-AIMClient } | Should Not throw
+				{ $InputObj | Invoke-AIMClient } | Should -Not -Throw
 
 			}
 
 			It 'does not require Set-AIMConfiguration to be run more than once' {
 
-				{ $InputObj | Invoke-AIMClient } | Should Not throw
+				{ $InputObj | Invoke-AIMClient } | Should -Not -Throw
+				{ $InputObj | Invoke-AIMClient } | Should -Not -Throw
 
 			}
 
@@ -186,7 +174,7 @@ Describe $FunctionName {
 
 				}
 
-				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'Problem occurred while trying to use user in the Vault'
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should -Throw '*Problem occurred while trying to use user in the Vault*'
 
 			}
 
@@ -201,7 +189,7 @@ Describe $FunctionName {
 
 				}
 
-				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'Something Awful.'
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should -Throw '*Something Awful.*'
 
 			}
 
@@ -216,7 +204,7 @@ Describe $FunctionName {
 
 				}
 
-				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'CLIPasswordSDK exited with code 0x00000001: Something Unexpected'
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should -Throw '*CLIPasswordSDK exited with code 0x00000001: Something Unexpected*'
 
 			}
 
@@ -231,7 +219,7 @@ Describe $FunctionName {
 
 				}
 
-				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'CLIPasswordSDK exited with code 0xC0000409'
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should -Throw '*CLIPasswordSDK exited with code 0xC0000409*'
 
 			}
 
@@ -246,7 +234,7 @@ Describe $FunctionName {
 
 				}
 
-				$InputObj | Invoke-AIMClient -ErrorAction SilentlyContinue | Should BeNullOrEmpty
+				$InputObj | Invoke-AIMClient -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
 
 			}
 
@@ -262,31 +250,36 @@ Describe $FunctionName {
 				}
 
 				$result = @($InputObj | Invoke-AIMClient)
-				$result.Count | Should Be 1
-				$result[0].StdOut | Should Be 'SomeOutput'
+				$result.Count | Should -Be 1
+				$result[0].StdOut | Should -Be 'SomeOutput'
 
 			}
 
 		}
 
 		Context 'Command Arguments' {
-			Mock Test-Path -MockWith {
-				$true
-			}
 
-			Mock Start-AIMClientProcess -MockWith {
-				Write-Output @{}
-			}
+			BeforeEach {
 
-			$InputObj = [pscustomobject]@{
-				CommandParameters = 'Some Command Parameters'
+				Mock Test-Path -MockWith {
+					$true
+				}
+
+				Mock Start-AIMClientProcess -MockWith {
+					Write-Output @{}
+				}
+
+				$InputObj = [pscustomobject]@{
+					CommandParameters = 'Some Command Parameters'
+				}
+
 			}
 
 			It 'executes command with expected arguments' {
 
 				$InputObj | Invoke-AIMClient
 
-				Assert-MockCalled Start-AIMClientProcess -Times 1 -Exactly -Scope It -ParameterFilter {
+				Should -Invoke Start-AIMClientProcess -Times 1 -Exactly -ParameterFilter {
 
 					$Process.StartInfo.Arguments -eq $('GetPassword  Some Command Parameters')
 

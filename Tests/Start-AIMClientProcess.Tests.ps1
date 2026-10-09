@@ -1,11 +1,11 @@
+#InModuleScope is resolved during Pester's discovery phase, so the module must be imported here
+#rather than from BeforeAll, which does not run until the later run phase.
+
 #Get Current Directory
-$Here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Here = Split-Path -Parent $PSCommandPath
 
-#Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
-
-#Assume ModuleName from Repository Root folder
-$ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
+#Module Name
+$ModuleName = 'CredentialRetriever'
 
 #Resolve Path to Module Directory
 $ModulePath = Resolve-Path "$Here\..\$ModuleName"
@@ -13,36 +13,22 @@ $ModulePath = Resolve-Path "$Here\..\$ModuleName"
 #Define Path to Module Manifest
 $ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
-#Preference file must be removed and module must be re-imported for tests to complete
-Remove-Item -Path "$env:HOMEDRIVE$env:HomePath\PARConfiguration.xml" -Force -ErrorAction SilentlyContinue
-Remove-Module -Name $ModuleName -Force -ErrorAction SilentlyContinue
-Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
+if ( -not (Get-Module -Name $ModuleName -All)) {
 
-BeforeAll {
-
-	#$Script:RequestBody = $null
+	Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
 }
 
-AfterAll {
+Describe 'Start-AIMClientProcess' {
 
-	#$Script:RequestBody = $null
-
-}
-
-Describe $FunctionName {
-
-	InModuleScope $ModuleName {
+	InModuleScope 'CredentialRetriever' {
 
 		Context 'Mandatory Parameters' {
 
 			$Parameters = @{Parameter = 'Process' }
 
 			It 'specifies parameter <Parameter> as mandatory' -TestCases $Parameters {
-
-				param($Parameter)
-
-				(Get-Command Start-AIMClientProcess).Parameters["$Parameter"].Attributes.Mandatory | Should Be $true
+				(Get-Command Start-AIMClientProcess).Parameters["$Parameter"].Attributes.Mandatory | Should -Be $true
 
 			}
 
@@ -77,7 +63,7 @@ Describe $FunctionName {
 
 			It 'executes without exception' {
 
-				{ $InputObj | Start-AIMClientProcess } | Should Not throw
+				{ $InputObj | Start-AIMClientProcess } | Should -Not -Throw
 
 
 			}
