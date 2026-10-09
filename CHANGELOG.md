@@ -7,6 +7,8 @@
 - `Get-CCPCredential`: `Method` parameter (`GET` or `POST`, default `GET`). `POST` sends request details in a JSON body (requires CCP 14.2 or later).
 - `Get-CCPCredential`: `QueryFormat` parameter (`Exact` or `Regexp`), for use with `Query`.
 - `Get-CCPCredential`: `FailRequestOnPasswordChange` parameter.
+- `Get-AIMCredential`: `Query` parameter, for a free query of account properties (e.g. `Safe=PS;CustomProperty=Value`).
+- `Get-AIMCredential`: `FailRequestOnPasswordChange` parameter.
 
 ### Changed
 
@@ -15,6 +17,8 @@
   - After: `-AppID PS -Query 'Safe=PS;Object=PSP-AccountName'`
 - **BREAKING** `Get-CCPCredential`: request errors are now non-terminating, so remaining pipeline input is still processed. Use `-ErrorAction Stop` for the previous behaviour.
 - **BREAKING** `Get-AIMCredential`: `Safe` now binds from pipeline by property name, consistent with other parameters, instead of by value.
+- **BREAKING** `Get-AIMCredential`: requested properties which do not exist (`<na>`) or have no value (`<null>`) are now output as `$null`.
+- `Get-AIMCredential`: search parameter values containing `;` or `"`, and `Query`/`Reason` values containing `"`, are now rejected.
 
 ### Fixed
 
@@ -22,6 +26,7 @@
 - `Get-CCPCredential`: `ConnectionTimeout` was ignored when used with `Query`.
 - `Get-CCPCredential`: when a piped request failed, the result of the previous request was output again.
 - `Get-AIMCredential`: piping multiple objects repeated the first query and failed to parse output for subsequent objects.
+- `Get-AIMCredential`: a failed `CLIPasswordSDK` process (non-zero exit code without a recognised error message) output an empty object instead of an error.
 
 ## 3.10.56
 

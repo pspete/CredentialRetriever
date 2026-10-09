@@ -145,6 +145,48 @@ InModuleScope $ModuleName {
 			{ 'SomeSafe' | Get-AIMCredential -AppID SomeApp -ErrorAction Stop } | Should Throw
 		}
 
+		It 'sends free query' {
+			Get-AIMCredential -AppID SomeApp -Query 'Safe=SomeSafe;CustomProp=Some Value' -QueryFormat regexp
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=SomeSafe;CustomProp=Some Value" /p QueryFormat="regexp" /o Password,PasswordChangeInProcess /d #_-_#'
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'does not allow Query with search parameters' {
+			{ Get-AIMCredential -AppID SomeApp -Query 'Safe=SomeSafe' -Object SomeObject } | Should Throw
+		}
+
+		It 'sends FailRequestOnPasswordChange' {
+			Get-AIMCredential -AppID SomeApp -Safe SomeSafe -FailRequestOnPasswordChange
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=SomeSafe" /p FailRequestOnPasswordChange=true /o Password,PasswordChangeInProcess /d #_-_#'
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'outputs <na> and <null> property values as null' {
+			Mock Invoke-AIMClient -MockWith {
+				[pscustomobject]@{
+					'ExitCode' = 0
+					'StdOut'   = '<na>#_-_#<null>#_-_#SomePassword#_-_#false'
+					'StdErr'   = $null
+				}
+			}
+			$result = Get-AIMCredential -AppID SomeApp -Safe SomeSafe -RequiredProps Prop1, Prop2
+			$result.Prop1 | Should BeNullOrEmpty
+			$result.Prop2 | Should BeNullOrEmpty
+			$result.Password | Should Be 'SomePassword'
+		}
+
+		It 'does not allow semicolon in search parameter value' {
+			{ Get-AIMCredential -AppID SomeApp -Safe 'Some;Safe' } | Should Throw
+			Assert-MockCalled Invoke-AIMClient -Times 0 -Exactly -Scope It
+		}
+
+		It 'does not allow double quote in Reason' {
+			{ Get-AIMCredential -AppID SomeApp -Safe SomeSafe -Reason 'Some" /p Other=Value' } | Should Throw
+			Assert-MockCalled Invoke-AIMClient -Times 0 -Exactly -Scope It
+		}
+
 	}
 
 }

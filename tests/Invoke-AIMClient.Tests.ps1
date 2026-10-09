@@ -194,6 +194,68 @@ Describe $FunctionName {
 
 			}
 
+			It 'reports non-zero exit code with unrecognised stderr' {
+
+				Mock Start-AIMClientProcess -MockWith {
+					[pscustomobject]@{
+						'ExitCode' = 1
+						'StdOut'   = ''
+						'StdErr'   = 'Something Unexpected'
+					}
+
+				}
+
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'CLIPasswordSDK exited with code 0x00000001: Something Unexpected'
+
+			}
+
+			It 'reports non-zero exit code with no stderr' {
+
+				Mock Start-AIMClientProcess -MockWith {
+					[pscustomobject]@{
+						'ExitCode' = -1073740791
+						'StdOut'   = ''
+						'StdErr'   = ''
+					}
+
+				}
+
+				{ $InputObj | Invoke-AIMClient -ErrorAction Stop } | Should Throw 'CLIPasswordSDK exited with code 0xC0000409'
+
+			}
+
+			It 'does not output result when exit code is non-zero' {
+
+				Mock Start-AIMClientProcess -MockWith {
+					[pscustomobject]@{
+						'ExitCode' = 1
+						'StdOut'   = ''
+						'StdErr'   = ''
+					}
+
+				}
+
+				$InputObj | Invoke-AIMClient -ErrorAction SilentlyContinue | Should BeNullOrEmpty
+
+			}
+
+			It 'outputs only the process result' {
+
+				Mock Start-AIMClientProcess -MockWith {
+					[pscustomobject]@{
+						'ExitCode' = 0
+						'StdOut'   = 'SomeOutput'
+						'StdErr'   = ''
+					}
+
+				}
+
+				$result = @($InputObj | Invoke-AIMClient)
+				$result.Count | Should Be 1
+				$result[0].StdOut | Should Be 'SomeOutput'
+
+			}
+
 		}
 
 		Context 'Command Arguments' {

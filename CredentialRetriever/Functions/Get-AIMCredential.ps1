@@ -31,8 +31,13 @@ Function Get-AIMCredential {
 	.PARAMETER PolicyID
 	Defines search criteria according to the PolicyID account property.
 
+	.PARAMETER Query
+	Defines a free query using account properties, including Safe, Folder and Object, separated by semicolons.
+	For example: Safe=SafeName;Object=ObjectName;CustomProperty=Value
+	Cannot be used with the Safe/Folder/Object/UserName/Address/Database/PolicyID parameters.
+
 	.PARAMETER QueryFormat
-	Whether to search via "exact" or "regex" terms
+	Whether to search via "exact" or "regexp" terms
 
 	.PARAMETER RequiredProps
 	Defines the names of the account properties you want to be returned in addition to the Password
@@ -45,6 +50,9 @@ Function Get-AIMCredential {
 
 	.PARAMETER Timeout
 	Timeout value in seconds
+
+	.PARAMETER FailRequestOnPasswordChange
+	Return an error if the request is made while a password change process is underway.
 
 	.EXAMPLE
 	Get-AIMCredential -AppID YourApp -Safe YourSafe -Folder Root -UserName YourUser
@@ -64,9 +72,15 @@ Function Get-AIMCredential {
 	--------   ----------------------- --------  -------
 	YourPass   false                   YourUser DOMAIN.COM
 
+	.EXAMPLE
+	Get-AIMCredential -AppID YourApp -Query 'Safe=YourSafe;CustomProperty=Value' -RequiredProps UserName
+
+	Returns the password and username of the account found via a free query.
+	Properties which do not exist, or have no value, are returned as $null.
+
 	#>
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
-	[CmdletBinding()]
+	[CmdletBinding(DefaultParameterSetName = 'Default')]
 	Param(
 		# Unique ID of the application
 		[Parameter(
@@ -79,58 +93,82 @@ Function Get-AIMCredential {
 		# Safe name
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$Safe,
 
 		# Folder name
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$Folder,
 
 		# Object name
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$Object,
 
 		# Search username
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$UserName,
 
 		# Search address
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$Address,
 
 		# Search database
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$Database,
 
 		# Set PolicyID
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipelineByPropertyName = $true
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
 		)]
+		[ValidatePattern('^[^;"]*$')]
 		[string]
 		$PolicyID,
+
+		# Free query of account properties
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[ValidatePattern('^[^"]*$')]
+		[string]
+		$Query,
 
 		# Set QueryFormat
 		[Parameter(
@@ -154,6 +192,7 @@ Function Get-AIMCredential {
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true
 		)]
+		[ValidatePattern('^[^"]*$')]
 		[string]
 		$Reason,
 
@@ -171,7 +210,15 @@ Function Get-AIMCredential {
 			ValueFromPipelineByPropertyName = $true
 		)]
 		[int]
-		$Timeout
+		$Timeout,
+
+		# Return an error if a password change is in progress
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true
+		)]
+		[switch]
+		$FailRequestOnPasswordChange
 	)
 
 	Begin {
@@ -206,16 +253,24 @@ Function Get-AIMCredential {
 		#Initial Command String
 		$Command = "/p AppDescs.AppID=`"$AppID`""
 
-		#Build array of query string properties
-		$Query = $QueryParameters | Where-Object { $PSBoundParameters.ContainsKey($_) } | ForEach-Object {
-			"$_=$($PSBoundParameters[$_])"
+		If ($PSCmdlet.ParameterSetName -eq 'Query') {
+
+			$QueryString = $Query
+
+		} Else {
+
+			#Build query string from search parameters
+			#"Property=Value;Property=Value;Property=Value"
+			$QueryString = ($QueryParameters | Where-Object { $PSBoundParameters.ContainsKey($_) } | ForEach-Object {
+					"$_=$($PSBoundParameters[$_])"
+				}) -join ';'
+
 		}
 
-		If ($Query) {
+		If ($QueryString) {
 
 			#Add Query to Command String
-			#"Property=Value;Property=Value;Property=Value"
-			$Command = "$Command /p Query=""$($Query -join ';')"""
+			$Command = "$Command /p Query=""$QueryString"""
 
 		}
 
@@ -245,6 +300,13 @@ Function Get-AIMCredential {
 
 				#Add Reason to Command String
 				$Command = "$Command /p Reason=`"$Reason`""
+
+			}
+
+			'FailRequestOnPasswordChange' {
+
+				#Add FailRequestOnPasswordChange to Command String
+				$Command = "$Command /p FailRequestOnPasswordChange=$("$($FailRequestOnPasswordChange.IsPresent)".ToLower())"
 
 			}
 
@@ -281,7 +343,12 @@ Function Get-AIMCredential {
 			For ($i = 0 ; $i -lt $ReturnProps.length ; $i++) {
 
 				#PropertyName=PropertyValue
-				$Output[$(($ReturnProps[$i]) -replace 'PassProps.', '')] = ($Results[$i]).trim()
+				$Value = ($Results[$i]).trim()
+
+				#<na> (property does not exist) & <null> (property has no value) are output as $null
+				If (($ReturnProps[$i] -like 'PassProps.*') -and ($Value -in '<na>', '<null>')) { $Value = $null }
+
+				$Output[$(($ReturnProps[$i]) -replace 'PassProps.', '')] = $Value
 
 			}
 

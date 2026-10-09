@@ -69,7 +69,7 @@
 
 		Try {
 
-			Get-Variable -Name AIM -ErrorAction Stop
+			$null = Get-Variable -Name AIM -ErrorAction Stop
 
 			#Check we have the path to the required client executable
 			if ($AIM.PSObject.Properties.Name -notcontains 'ClientPath') {
@@ -112,6 +112,13 @@
 				Write-Debug "ErrorId: $($Matches[1])"
 				Write-Debug "Message: $($Matches[2])"
 				Write-Error -Message $Matches[2] -ErrorId $Matches[1]
+
+			} ElseIf ($Result.ExitCode) {
+
+				#Process failed without a recognised error message (e.g. crash or missing dependency)
+				$Message = 'CLIPasswordSDK exited with code 0x{0:X8}' -f $Result.ExitCode
+				if ($Result.StdErr) { $Message = "$Message`: $(([string]$Result.StdErr).Trim())" }
+				Write-Error -Message $Message -ErrorId 'AIMClientExitCode'
 
 			} Else { $Result }
 		}
