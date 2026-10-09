@@ -13,11 +13,15 @@
 - **BREAKING** `Get-CCPCredential`: `Query` now takes the CCP free query value (e.g. `Safe=PS;Object=PSP-AccountName`) instead of a complete URL query string. `AppID` is now required with `Query`, and `Reason` can be used with it.
   - Before: `-Query 'AppID=PS&Safe=PS&Object=PSP-AccountName'`
   - After: `-AppID PS -Query 'Safe=PS;Object=PSP-AccountName'`
+- **BREAKING** `Get-CCPCredential`: request errors are now non-terminating, so remaining pipeline input is still processed. Use `-ErrorAction Stop` for the previous behaviour.
+- **BREAKING** `Get-AIMCredential`: `Safe` now binds from pipeline by property name, consistent with other parameters, instead of by value.
 
 ### Fixed
 
 - `Get-CCPCredential`: error responses without `ErrorMsg`/`ErrorCode` (e.g. HTTP 405) were masked by an `ErrorRecord` constructor error.
 - `Get-CCPCredential`: `ConnectionTimeout` was ignored when used with `Query`.
+- `Get-CCPCredential`: when a piped request failed, the result of the previous request was output again.
+- `Get-AIMCredential`: piping multiple objects repeated the first query and failed to parse output for subsequent objects.
 
 ## 3.10.56
 

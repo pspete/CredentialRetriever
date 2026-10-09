@@ -94,6 +94,57 @@ InModuleScope $ModuleName {
 			$result.Password | Should Be 'Some,Password'
 		}
 
+		It 'sends expected command' {
+			$Expected = @(
+				'/p Query="Safe=SomeSafe;Folder=SomeFolder;Object=SomeObject;UserName=SomeUser"'
+				'/p QueryFormat="exact"'
+				'/p RequiredProps=UserName,Prop2,Prop3,Prop4'
+				'/p Reason="SomeReason"'
+				'/p ConnectionParms.Port=123'
+				'/p ConnectionParms.Timeout=666'
+			)
+			$InputObj | Get-AIMCredential
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters.StartsWith('/p AppDescs.AppID="SomeApp" ') -and
+				$CommandParameters.EndsWith(' /o PassProps.UserName,PassProps.Prop2,PassProps.Prop3,PassProps.Prop4,Password,PasswordChangeInProcess /d #_-_#') -and
+				@($Expected | Where-Object { -not $CommandParameters.Contains($_) }).Count -eq 0
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'sends separate query for each piped object' {
+			$Objects = @(
+				[pscustomobject]@{ AppID = 'SomeApp'; Safe = 'Safe1'; Object = 'Object1' },
+				[pscustomobject]@{ AppID = 'SomeApp'; Safe = 'Safe2'; Object = 'Object2' }
+			)
+			$Objects | Get-AIMCredential
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=Safe1;Object=Object1" /o Password,PasswordChangeInProcess /d #_-_#'
+			} -Times 1 -Exactly -Scope It
+			Assert-MockCalled Invoke-AIMClient -ParameterFilter {
+				$CommandParameters -eq '/p AppDescs.AppID="SomeApp" /p Query="Safe=Safe2;Object=Object2" /o Password,PasswordChangeInProcess /d #_-_#'
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'outputs one object for each piped object' {
+			Mock Invoke-AIMClient -MockWith {
+				[pscustomobject]@{
+					'ExitCode' = 0
+					'StdOut'   = 'SomePassword#_-_#false'
+					'StdErr'   = $null
+				}
+			}
+			$result = @(
+				[pscustomobject]@{ AppID = 'SomeApp'; Safe = 'Safe1' },
+				[pscustomobject]@{ AppID = 'SomeApp'; Safe = 'Safe2' }
+			) | Get-AIMCredential
+			$result.Count | Should Be 2
+			$result | ForEach-Object { $_.Password | Should Be 'SomePassword' }
+		}
+
+		It 'does not bind piped string to Safe' {
+			{ 'SomeSafe' | Get-AIMCredential -AppID SomeApp -ErrorAction Stop } | Should Throw
+		}
+
 	}
 
 }

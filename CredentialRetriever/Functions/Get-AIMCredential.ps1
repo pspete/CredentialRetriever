@@ -79,7 +79,7 @@ Function Get-AIMCredential {
 		# Safe name
 		[Parameter(
 			Mandatory = $false,
-			ValueFromPipeline = $true
+			ValueFromPipelineByPropertyName = $true
 		)]
 		[string]
 		$Safe,
@@ -191,10 +191,6 @@ Function Get-AIMCredential {
 			'Timeout'
 		)
 
-		#Array to hold the Properties to return
-		[array]$ReturnProps = @()
-		#Hashtable to hold the Results to Output
-		[hashtable]$Output = @{ }
 		#Delimiter for separating the output fields
 		$Separator = '#_-_#'
 
@@ -202,31 +198,29 @@ Function Get-AIMCredential {
 
 	Process {
 
+		#Array to hold the Properties to return
+		[array]$ReturnProps = @()
+		#Hashtable to hold the Results to Output
+		[hashtable]$Output = @{ }
+
 		#Initial Command String
 		$Command = "/p AppDescs.AppID=`"$AppID`""
 
 		#Build array of query string properties
-		$PSBoundParameters.Add('Query', @())
-		$QueryParameters | ForEach-Object {
+		$Query = $QueryParameters | Where-Object { $PSBoundParameters.ContainsKey($_) } | ForEach-Object {
+			"$_=$($PSBoundParameters[$_])"
+		}
 
-			If ($PSBoundParameters.ContainsKey("$_")) {
+		If ($Query) {
 
-
-				$PSBoundParameters['Query'] += "$_=$($PSBoundParameters["$_"])"
-			}
+			#Add Query to Command String
+			#"Property=Value;Property=Value;Property=Value"
+			$Command = "$Command /p Query=""$($Query -join ';')"""
 
 		}
 
 		#Build Command String
 		switch ( $PSBoundParameters.Keys ) {
-
-			'Query' {
-
-				#Add Query to Command String
-				#"Property=Value;Property=Value;Property=Value"
-				$Command = "$Command /p Query=""$($PSBoundParameters['Query'] -join ';')"""
-
-			}
 
 			'QueryFormat' {
 
@@ -272,11 +266,8 @@ Function Get-AIMCredential {
 		#Build Command String
 		$Command = "$Command /o $ReturnProps /d $Separator"
 
-		#Add CommandParameters to $PSBoundParameters for Splat against Invoke-AIMClient
-		$PSBoundParameters.Add('CommandParameters', "$Command")
-
 		#Invoke Credential Provider
-		$Result = Invoke-AIMClient @PSBoundParameters
+		$Result = Invoke-AIMClient -CommandParameters $Command
 
 		#Output on StdOut
 		If ($null -ne $Result.StdOut) {

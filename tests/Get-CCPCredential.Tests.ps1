@@ -237,6 +237,39 @@ InModuleScope $ModuleName {
 			Assert-MockCalled Skip-CertificateCheck -Times 1 -Exactly -Scope It
 		}
 
+		It 'does not output previous result when a later request fails' {
+			$Script:RequestCount = 0
+			Mock Invoke-RestMethod {
+				$Script:RequestCount++
+				if ($Script:RequestCount -gt 1) { throw 'Some Error' }
+				[pscustomobject]@{ 'Content' = 'SomePassword' }
+			}
+			$Script:Output = @()
+			{
+				@(
+					[pscustomobject]@{ AppID = 'PS'; Safe = 'Safe1'; URL = 'https://P_URI' },
+					[pscustomobject]@{ AppID = 'PS'; Safe = 'Safe2'; URL = 'https://P_URI' }
+				) | Get-CCPCredential -ErrorAction Stop | ForEach-Object { $Script:Output += $_ }
+			} | Should throw 'Some Error'
+			$Script:Output.Count | Should Be 1
+		}
+
+		It 'continues processing piped input after a failed request' {
+			$Script:RequestCount = 0
+			Mock Invoke-RestMethod {
+				$Script:RequestCount++
+				if ($Script:RequestCount -eq 2) { throw 'Some Error' }
+				[pscustomobject]@{ 'Content' = "SomePassword$Script:RequestCount" }
+			}
+			$result = @(
+				[pscustomobject]@{ AppID = 'PS'; Safe = 'Safe1'; URL = 'https://P_URI' },
+				[pscustomobject]@{ AppID = 'PS'; Safe = 'Safe2'; URL = 'https://P_URI' },
+				[pscustomobject]@{ AppID = 'PS'; Safe = 'Safe3'; URL = 'https://P_URI' }
+			) | Get-CCPCredential -ErrorAction SilentlyContinue -ErrorVariable RequestErrors
+			$result.Content | Should Be @('SomePassword1', 'SomePassword3')
+			$RequestErrors[-1].Exception.Message | Should Be 'Some Error'
+		}
+
 		It 'catches exceptions from Invoke-RestMethod' {
 			Mock Invoke-RestMethod { throw 'Some Error' }
 

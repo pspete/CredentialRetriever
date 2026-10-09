@@ -500,6 +500,8 @@
 
 		}
 
+		$result = $null
+
 		Try {
 
 			#send request
@@ -511,14 +513,21 @@
 			$ErrorMessage = $ErrorRecord.Exception.Message
 			$ErrorID = $ErrorRecord.FullyQualifiedErrorId
 
-			try {
+			$err = $null
 
-				$err = $ErrorRecord | ConvertFrom-Json -ErrorAction Stop
+			#Only parse responses that look like JSON
+			if ("$ErrorRecord".TrimStart().StartsWith('{')) {
 
-			} catch {
+				try {
 
-				#Response is not JSON, keep original exception details
-				$err = $null
+					$err = $ErrorRecord | ConvertFrom-Json -ErrorAction Stop
+
+				} catch {
+
+					#Response is not valid JSON, keep original exception details
+					$err = $null
+
+				}
 
 			}
 
@@ -530,8 +539,8 @@
 				$ErrorMessage = $err.Message
 			}
 
-			#throw the error
-			$PSCmdlet.ThrowTerminatingError(
+			#report the error and continue with any further pipeline input
+			$PSCmdlet.WriteError(
 
 				[System.Management.Automation.ErrorRecord]::new(
 
@@ -544,28 +553,26 @@
 
 			)
 
-		} Finally {
+		}
 
-			if ($null -ne $result) {
+		if ($null -ne $result) {
 
-				#Add ScriptMethod to output object to convert password to Secure String
-				$result | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
+			#Add ScriptMethod to output object to convert password to Secure String
+			$result | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
 
-					$this.Content | ConvertTo-SecureString -AsPlainText -Force
+				$this.Content | ConvertTo-SecureString -AsPlainText -Force
 
-				} -Force
+			} -Force
 
-				#Add ScriptMethod to output object to convert username & password to Credential Object
-				$result | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
+			#Add ScriptMethod to output object to convert username & password to Credential Object
+			$result | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
 
-					New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
+				New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
 
-				} -Force
+			} -Force
 
-				#Return the result from CCP
-				$result
-
-			}
+			#Return the result from CCP
+			$result
 
 		}
 
