@@ -1,11 +1,11 @@
+#InModuleScope is resolved during Pester's discovery phase, so the module must be imported here
+#rather than from BeforeAll, which does not run until the later run phase.
+
 #Get Current Directory
-$Here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Here = Split-Path -Parent $PSCommandPath
 
-#Get Function Name
-$FunctionName = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -Replace '.Tests.ps1'
-
-#Assume ModuleName from Repository Root folder
-$ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
+#Module Name
+$ModuleName = 'CredentialRetriever'
 
 #Resolve Path to Module Directory
 $ModulePath = Resolve-Path "$Here\..\$ModuleName"
@@ -19,21 +19,9 @@ if ( -not (Get-Module -Name $ModuleName -All)) {
 
 }
 
-BeforeAll {
+Describe 'Set-AIMConfiguration' {
 
-	#$Script:RequestBody = $null
-
-}
-
-AfterAll {
-
-	#$Script:RequestBody = $null
-
-}
-
-Describe $FunctionName {
-
-	InModuleScope $ModuleName {
+	InModuleScope 'CredentialRetriever' {
 
 		Context 'General' {
 
@@ -54,37 +42,37 @@ Describe $FunctionName {
 			It 'sets value of script scope variable' {
 
 				$InputObj | Set-AIMConfiguration
-				$Script:AIM | Should Not BeNullOrEmpty
+				$Script:AIM | Should -Not -BeNullOrEmpty
 			}
 
 			It 'sets client path property value' {
 				$InputObj | Set-AIMConfiguration
-				$($Script:AIM.ClientPath) | Should Be 'SomePath'
+				$($Script:AIM.ClientPath) | Should -Be 'SomePath'
 			}
 
 			It 'exports configuration to home folder' {
 				$InputObj | Set-AIMConfiguration
-				Assert-MockCalled Export-Clixml -ParameterFilter {
+				Should -Invoke Export-Clixml -ParameterFilter {
 					$Path -eq (Join-Path -Path $HOME -ChildPath 'AIMConfiguration.xml')
-				} -Times 1 -Exactly -Scope It
+				} -Times 1 -Exactly
 			}
 
 			It 'exports configuration with ClientPath property' {
 				$InputObj | Set-AIMConfiguration
-				Assert-MockCalled Export-Clixml -ParameterFilter {
+				Should -Invoke Export-Clixml -ParameterFilter {
 					$InputObject.ClientPath -eq 'SomePath'
-				} -Times 1 -Exactly -Scope It
+				} -Times 1 -Exactly
 			}
 
 			It 'specifies ClientPath as mandatory' {
-				(Get-Command Set-AIMConfiguration).Parameters['ClientPath'].Attributes.Mandatory | Should Be $true
+				(Get-Command Set-AIMConfiguration).Parameters['ClientPath'].Attributes.Mandatory | Should -Be $true
 			}
 
 			It 'does not set configuration with WhatIf' {
 				$Script:AIM = [pscustomobject]@{ ClientPath = 'OtherPath' }
 				$InputObj | Set-AIMConfiguration -WhatIf
-				$Script:AIM.ClientPath | Should Be 'OtherPath'
-				Assert-MockCalled Export-Clixml -Times 0 -Exactly -Scope It
+				$Script:AIM.ClientPath | Should -Be 'OtherPath'
+				Should -Invoke Export-Clixml -Times 0 -Exactly
 			}
 
 		}

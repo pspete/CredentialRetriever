@@ -1,45 +1,29 @@
-Describe $($PSCommandPath -Replace '.Tests.ps1') {
+#InModuleScope is resolved during Pester's discovery phase, so the module must be imported here
+#rather than from BeforeAll, which does not run until the later run phase.
 
-	BeforeAll {
-		#Get Current Directory
-		$Here = Split-Path -Parent $PSCommandPath
+#Get Current Directory
+$Here = Split-Path -Parent $PSCommandPath
 
-		#Assume ModuleName from Repository Root folder
-		$ModuleName = Split-Path (Split-Path $Here -Parent) -Leaf
+#Module Name
+$ModuleName = 'CredentialRetriever'
 
-		#Resolve Path to Module Directory
-		$ModulePath = Resolve-Path "$Here\..\$ModuleName"
+#Resolve Path to Module Directory
+$ModulePath = Resolve-Path "$Here\..\$ModuleName"
 
-		#Define Path to Module Manifest
-		$ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
+#Define Path to Module Manifest
+$ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
-		if ( -not (Get-Module -Name $ModuleName -All)) {
+if ( -not (Get-Module -Name $ModuleName -All)) {
 
-			Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
+	Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
-		}
+}
 
-		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+Describe 'Skip-CertificateCheck' {
 
-	}
-
-
-	AfterAll {
-
-		$Script:RequestBody = $null
-
-	}
-
-	InModuleScope $(Split-Path (Split-Path (Split-Path -Parent $PSCommandPath) -Parent) -Leaf ) {
+	InModuleScope 'CredentialRetriever' {
 
 		Context 'General' {
-
-			BeforeEach {
-
-			}
 
 			It 'does not throw' {
 
@@ -73,7 +57,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 				$CertificatePolicy = Skip-CertificateCheck
 				$null = Skip-CertificateCheck
 				[System.Net.ServicePointManager]::CertificatePolicy = $CertificatePolicy
-				Assert-MockCalled Add-Type -Times 0 -Exactly -Scope It
+				Should -Invoke Add-Type -Times 0 -Exactly
 
 			}
 

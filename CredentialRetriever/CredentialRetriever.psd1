@@ -85,7 +85,7 @@
 			# IconUri = ''
 
 			# ReleaseNotes of this module
-			# ReleaseNotes = ''
+			ReleaseNotes = 'https://github.com/pspete/CredentialRetriever/blob/master/CHANGELOG.md'
 
 		} # End of PSData hashtable
 

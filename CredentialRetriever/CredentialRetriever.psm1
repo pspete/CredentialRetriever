@@ -1,4 +1,5 @@
-﻿<#
+﻿#region Loader
+<#
 .SYNOPSIS
 
 .DESCRIPTION
@@ -46,6 +47,7 @@ ForEach-Object {
 	}
 
 }
+#endregion Loader
 
 #Read config and make available in script scope
 $ConfigFile = Join-Path -Path $HOME -ChildPath 'AIMConfiguration.xml'
