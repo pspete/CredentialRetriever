@@ -43,6 +43,8 @@ Describe $FunctionName {
 					$true
 				}
 
+				Mock Export-Clixml -MockWith { }
+
 				$InputObj = [pscustomobject]@{
 					ClientPath = 'SomePath'
 				}
@@ -58,6 +60,13 @@ Describe $FunctionName {
 			It 'sets client path property value' {
 				$InputObj | Set-AIMConfiguration
 				$($Script:AIM.ClientPath) | Should Be 'SomePath'
+			}
+
+			It 'exports configuration to user profile' {
+				$InputObj | Set-AIMConfiguration
+				Assert-MockCalled Export-Clixml -ParameterFilter {
+					$Path -eq "$env:USERPROFILE\AIMConfiguration.xml"
+				} -Times 1 -Exactly -Scope It
 			}
 
 		}

@@ -13,8 +13,7 @@ $ModulePath = Resolve-Path "$Here\..\$ModuleName"
 #Define Path to Module Manifest
 $ManifestPath = Join-Path "$ModulePath" "$ModuleName.psd1"
 
-#Preference file must be removed and module must be re-imported for tests to complete
-Remove-Item -Path "$env:HOMEDRIVE$env:HomePath\PARConfiguration.xml" -Force -ErrorAction SilentlyContinue
+#Module must be re-imported for tests to complete
 Remove-Module -Name $ModuleName -Force -ErrorAction SilentlyContinue
 Import-Module -Name "$ManifestPath" -ArgumentList $true -Force -ErrorAction Stop
 
@@ -53,6 +52,8 @@ Describe $FunctionName {
 		Context 'Default' {
 
 			BeforeEach {
+
+				Remove-Variable -Name AIM -Scope Script -ErrorAction SilentlyContinue
 
 				Mock Start-AIMClientProcess -MockWith {
 					Write-Output @{}
@@ -107,9 +108,9 @@ Describe $FunctionName {
 					ClientPath = '.\README.md'
 					prop2      = 'Value2'
 				}
-				New-Variable -Name AIM -Value $object
+				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Not Throw
 
 			}
 
@@ -119,6 +120,8 @@ Describe $FunctionName {
 		Context 'Set-AIMConfiguration' {
 
 			BeforeEach {
+
+				Mock Export-Clixml -MockWith { }
 
 				Mock Test-Path -MockWith {
 					$true

@@ -113,7 +113,7 @@ Describe 'Module' {
 
 							$HelpParameters = $help.parameters.parameter | Where-Object name -NotIn @('WhatIf', 'Confirm')
 
-							$HelpParameters.foreach{
+							@($HelpParameters).foreach{
 
 								It "has description of parameter $($_.name)" {
 
