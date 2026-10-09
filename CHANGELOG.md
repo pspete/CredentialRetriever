@@ -1,6 +1,10 @@
 # CredentialRetriever Changelog
 
-## Unreleased (major)
+## Unreleased
+
+- N/A
+
+## [4.0.0] - 2026-10-09
 
 ### Added
 
