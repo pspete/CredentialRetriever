@@ -66,10 +66,36 @@ InModuleScope $ModuleName {
 		}
 
 		It 'sends request with expected Query' {
-			Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact' -URL 'https://SomeURL'
+			Get-CCPCredential -AppID PS -Query 'Safe=PS;Object=PSP-AccountName' -QueryFormat Exact -URL 'https://SomeURL'
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
-				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact'
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=PS&Query=Safe%3DPS%3BObject%3DPSP-AccountName&QueryFormat=Exact'
+
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'sends ConnectionTimeout with Query' {
+			Get-CCPCredential -AppID PS -Query 'Safe=PS' -ConnectionTimeout 45 -URL 'https://SomeURL'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=PS&Query=Safe%3DPS&ConnectionTimeout=45'
+
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'throws if Query is specified with other search criteria' {
+			{ Get-CCPCredential -AppID PS -Query 'Safe=PS' -Safe PS -URL 'https://SomeURL' } | Should Throw
+		}
+
+		It 'throws if QueryFormat is specified without Query' {
+			{ Get-CCPCredential -AppID PS -Safe PS -QueryFormat Exact -URL 'https://SomeURL' } | Should Throw
+		}
+
+		It 'sends FailRequestOnPasswordChange in URL' {
+			Get-CCPCredential -AppID PS -Safe PS -FailRequestOnPasswordChange -URL 'https://SomeURL'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=PS&Safe=PS&FailRequestOnPasswordChange=True'
 
 			} -Times 1 -Exactly -Scope It
 		}
@@ -122,7 +148,7 @@ InModuleScope $ModuleName {
 		It 'invokes rest method with query and credentials' {
 
 			$SomeCredential = New-Object System.Management.Automation.PSCredential('SomeUser', $('SomePassword' | ConvertTo-SecureString -AsPlainText -Force))
-			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -Credential $SomeCredential
+			$InputObj | Get-CCPCredential -Query 'SomeQuery' -Credential $SomeCredential
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$credential -eq $SomeCredential
@@ -142,7 +168,7 @@ InModuleScope $ModuleName {
 
 		It 'invokes rest method with query and default credentials switch' {
 
-			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -UseDefaultCredentials
+			$InputObj | Get-CCPCredential -Query 'SomeQuery' -UseDefaultCredentials
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$UseDefaultCredentials -eq $true
@@ -164,7 +190,7 @@ InModuleScope $ModuleName {
 		It 'invokes rest method with query and certificateThumbprint' {
 
 			$thumbprint = 'C1Y2BFE0R0ADR3KDR508C4KAS4C1YFB7EAR4ACRK'
-			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -CertificateThumbPrint $thumbprint
+			$InputObj | Get-CCPCredential -Query 'SomeQuery' -CertificateThumbPrint $thumbprint
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$certificateThumbprint -eq $thumbprint
@@ -186,7 +212,7 @@ InModuleScope $ModuleName {
 		It 'invokes rest method with query and certificate' {
 
 			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
-			Get-CCPCredential -Query 'SomeQuery' -URL 'https://SomeURL' -Certificate $certificate
+			$InputObj | Get-CCPCredential -Query 'SomeQuery' -Certificate $certificate
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
 				$certificate -eq $certificate
@@ -194,7 +220,7 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
-		It 'invokes rest method with SkipCertificateCheck' {
+		It 'invokes rest method with SkipCertificateCheck' -Skip:($PSVersionTable.PSEdition -ne 'Core') {
 
 			$InputObj | Get-CCPCredential -SkipCertificateCheck
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
@@ -204,17 +230,31 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		It 'invokes Skip-CertificateCheck on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+			Mock Skip-CertificateCheck { }
+			$InputObj | Get-CCPCredential -SkipCertificateCheck
+			Assert-MockCalled Skip-CertificateCheck -Times 1 -Exactly -Scope It
+		}
+
 		It 'catches exceptions from Invoke-RestMethod' {
 			Mock Invoke-RestMethod { throw 'Some Error' }
 
-			{ $InputObj | Get-CCPCredential -ErrorAction Stop } | Should throw
+			{ $InputObj | Get-CCPCredential -ErrorAction Stop } | Should throw 'Some Error'
 		}
 
 		It 'catches exceptions returned from the web service' {
 			$return = @{'ErrorMsg' = 'Some Message'; 'ErrorCode' = 'SomeCode' }
 			Mock Invoke-RestMethod { throw $($return | ConvertTo-Json) }
 
-			{ $InputObj | Get-CCPCredential -ErrorAction Stop } | Should throw
+			{ $InputObj | Get-CCPCredential -ErrorAction Stop } | Should throw 'Some Message'
+		}
+
+		It 'catches exceptions with only a Message property' {
+			$return = @{'Message' = "The requested resource does not support http method 'POST'." }
+			Mock Invoke-RestMethod { throw $($return | ConvertTo-Json) }
+
+			{ $InputObj | Get-CCPCredential -ErrorAction Stop } | Should throw "does not support http method 'POST'"
 		}
 
 		It 'outputs object with ToSecureString method' {
@@ -243,17 +283,44 @@ InModuleScope $ModuleName {
 			($result.ToCredential()).GetNetworkCredential().Password | Should Be 'SomePassword'
 		}
 
-		It 'sends POST request when UsePostMethod is specified' {
-			$InputObj | Get-CCPCredential -UsePostMethod
+		It 'does not send a body for GET requests' {
+			$InputObj | Get-CCPCredential
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
-				$Method -eq 'POST'
+				$null -eq $Body
 			} -Times 1 -Exactly -Scope It
 		}
 
-		It 'converts Query parameter to JSON for POST request' {
-			Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS' -URL 'https://SomeURL' -UsePostMethod
+		It 'throws on invalid Method' {
+			{ $InputObj | Get-CCPCredential -Method PUT } | Should Throw
+		}
+
+		It 'sends POST request without query string' {
+			$InputObj | Get-CCPCredential -Method POST
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
-				$Method -eq 'POST' -and $Body -like '*AppID*'
+				$Method -eq 'POST' -and $URI -eq 'https://SomeURL/AIMWebService/api/Accounts'
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'sends expected JSON body for POST request' {
+			Get-CCPCredential -AppID PS -Safe PS -Object 'PSP-AccountName' -ConnectionTimeout 45 -FailRequestOnPasswordChange -Method POST -URL 'https://SomeURL'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+				$Sent = $Body | ConvertFrom-Json
+				($Sent.PSObject.Properties.Name -join ',') -eq 'AppID,Safe,Object,ConnectionTimeout,FailRequestOnPasswordChange' -and
+				$Sent.AppID -eq 'PS' -and
+				$Sent.Safe -eq 'PS' -and
+				$Sent.Object -eq 'PSP-AccountName' -and
+				$Sent.ConnectionTimeout -eq 45 -and
+				$Sent.FailRequestOnPasswordChange -eq $true
+			} -Times 1 -Exactly -Scope It
+		}
+
+		It 'sends expected JSON body for POST Query request' {
+			Get-CCPCredential -AppID PS -Query 'Safe=PS;Object=PSP-.*' -QueryFormat Regexp -Method POST -URL 'https://SomeURL'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
+				$Sent = $Body | ConvertFrom-Json
+				($Sent.PSObject.Properties.Name -join ',') -eq 'AppID,Query,QueryFormat' -and
+				$Sent.Query -eq 'Safe=PS;Object=PSP-.*' -and
+				$Sent.QueryFormat -eq 'Regexp'
 			} -Times 1 -Exactly -Scope It
 		}
 

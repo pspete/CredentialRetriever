@@ -1,5 +1,24 @@
 # CredentialRetriever Changelog
 
+## Unreleased
+
+### Added
+
+- `Get-CCPCredential`: `Method` parameter (`GET` or `POST`, default `GET`). `POST` sends request details in a JSON body (requires CCP 14.2 or later).
+- `Get-CCPCredential`: `QueryFormat` parameter (`Exact` or `Regexp`), for use with `Query`.
+- `Get-CCPCredential`: `FailRequestOnPasswordChange` parameter.
+
+### Changed
+
+- **BREAKING** `Get-CCPCredential`: `Query` now takes the CCP free query value (e.g. `Safe=PS;Object=PSP-AccountName`) instead of a complete URL query string. `AppID` is now required with `Query`, and `Reason` can be used with it.
+  - Before: `-Query 'AppID=PS&Safe=PS&Object=PSP-AccountName'`
+  - After: `-AppID PS -Query 'Safe=PS;Object=PSP-AccountName'`
+
+### Fixed
+
+- `Get-CCPCredential`: error responses without `ErrorMsg`/`ErrorCode` (e.g. HTTP 405) were masked by an `ErrorRecord` constructor error.
+- `Get-CCPCredential`: `ConnectionTimeout` was ignored when used with `Query`.
+
 ## 3.10.56
 
 - Update `Get-CCPCredential`

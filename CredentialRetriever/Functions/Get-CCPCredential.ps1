@@ -37,12 +37,22 @@
 	The reason for retrieving the password. This reason will be audited in the Credential Provider audit log
 
 	.PARAMETER Query
-	A query value to be specified in the URL to filter the result.
+	Defines a free query using account properties, including Safe, Folder and Object, separated by semicolons.
+	For example: Safe=SafeName;Object=ObjectName;CustomProperty=Value
+	When specified, all other search criteria (Safe/Folder/Object/UserName/Address/PolicyID/Database) are ignored
+	by the Central Credential Provider, so they cannot be used with this parameter.
+
+	.PARAMETER QueryFormat
+	Defines the query format, which can optionally use regular expressions.
+	Possible values are Exact or Regexp. The Central Credential Provider default is Exact.
 
 	.PARAMETER ConnectionTimeout
 	The number of seconds that the Central Credential Provider will try to retrieve the password.
 	The timeout is calculated when the request is sent from the web service to the Vault and returned back
 	to the web service.
+
+	.PARAMETER FailRequestOnPasswordChange
+	Return an error if the request is made while a password change process is underway.
 
 	.PARAMETER Credential
 	Specify the credentials object if OS User authentication is required for an AAM CCP Application.
@@ -77,10 +87,10 @@
 
 	Use at your own risk.
 
-	.PARAMETER UsePostMethod
-	Uses POST method instead of GET method for the request.
-	Authentication details will be sent in the request body instead of the URL.
-	Requires CyberArk Central Credential Provider version 14.2 or later.
+	.PARAMETER Method
+	The HTTP method used for the request. Defaults to GET.
+	GET sends request parameters in the URL query string.
+	POST sends request parameters as a JSON body, and requires Central Credential Provider version 14.2 or later.
 
 	.EXAMPLE
 	Get-CCPCredential -AppID PSScript -Safe PSAccounts -Object PSPlatform-AccountName -URL https://cyberark.yourcompany.com
@@ -95,7 +105,7 @@
 	from the https://cyberark-dev.yourcompany.com/DevAIM CCP Web Service.
 
 	.EXAMPLE
-	Get-CCPCredential -AppID PowerShell -Safe PSAccounts -UserName svc-psProvision -WebServiceName DevAIM -UsePostMethod -URL https://cyberark-dev.yourcompany.com
+	Get-CCPCredential -AppID PowerShell -Safe PSAccounts -UserName svc-psProvision -WebServiceName DevAIM -Method POST -URL https://cyberark-dev.yourcompany.com
 
 	Uses the PowerShell App ID to search for and retrieve the password for the svc-psProvision account in the PSAccounts safe
 	from the https://cyberark-dev.yourcompany.com/DevAIM CCP Web Service using POST method.
@@ -135,14 +145,19 @@
 	Calls Invoke-RestMethod with the supplied Certificate for Certificate authentication
 
 	.EXAMPLE
-	Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS&QueryFormat=Exact' -URL https://cyberark.yourcompany.com
+	Get-CCPCredential -AppID PS -Query 'Safe=PS;Object=PSP-AccountName' -QueryFormat Exact -URL https://cyberark.yourcompany.com
 
-	Calls Invoke-RestMethod with a prepared query string
+	Uses the PS App ID to retrieve the password matching the free query for the PSP-AccountName object in the PS safe.
 
 	.EXAMPLE
-	Get-CCPCredential -Query 'AppID=PS&Object=PSP-AccountName&Safe=PS;CustomFileCategoryName1=Yourcompany Data' -URL https://cyberark.yourcompany.com
+	Get-CCPCredential -AppID PS -Query 'Safe=PS;CustomFileCategoryName1=Yourcompany Data' -URL https://cyberark.yourcompany.com
 
-	Calls Invoke-RestMethod with a prepared query string that includes a custom file category and a space
+	Uses the PS App ID to retrieve the password from the PS safe with a custom file category value that includes a space.
+
+	.EXAMPLE
+	Get-CCPCredential -AppID PS -Query 'Safe=PS;Object=PSP-.*' -QueryFormat Regexp -Method POST -URL https://cyberark.yourcompany.com
+
+	Sends a regular expression query in a POST request body.
 	#>
 
 	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Suppress alert from ToSecureString ScriptMethod')]
@@ -153,6 +168,11 @@
 			Mandatory = $true,
 			ValueFromPipelineByPropertyName = $true,
 			ParameterSetName = 'Default'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
 		)]
 		[string]
 		$AppID,
@@ -226,9 +246,15 @@
 			ValueFromPipelineByPropertyName = $true,
 			ParameterSetName = 'Default'
 		)]
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
 		[string]
 		$Reason,
 
+		# Free query of account properties
 		[parameter(
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
@@ -236,6 +262,16 @@
 		)]
 		[string]
 		$Query,
+
+		# Format of free query
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[ValidateSet('Exact', 'Regexp')]
+		[string]
+		$QueryFormat,
 
 		# Number of seconds to try
 		[Parameter(
@@ -250,6 +286,20 @@
 		)]
 		[int]
 		$ConnectionTimeout,
+
+		# Return an error if a password change is in progress
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Default'
+		)]
+		[Parameter(
+			Mandatory = $false,
+			ValueFromPipelineByPropertyName = $true,
+			ParameterSetName = 'Query'
+		)]
+		[switch]
+		$FailRequestOnPasswordChange,
 
 		# Credentials to send in request to CCP
 		[Parameter(
@@ -351,7 +401,7 @@
 		[switch]
 		$SkipCertificateCheck,
 
-		# Use POST method for request to CCP
+		# HTTP method for request to CCP
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $false,
@@ -362,8 +412,9 @@
 			ValueFromPipelineByPropertyName = $false,
 			ParameterSetName = 'Query'
 		)]
-		[switch]
-		$UsePostMethod
+		[ValidateSet('GET', 'POST')]
+		[string]
+		$Method = 'GET'
 	)
 
 	Begin {
@@ -371,7 +422,7 @@
 		#Collection of parameters which are to be excluded from the request URL
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
 		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'UsePostMethod'
+		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'Method'
 
 		#If Tls12 Security Protocol is available
 		if (([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
@@ -389,70 +440,43 @@
 
 	Process {
 
-		Switch -Regex ($($PSCmdlet.ParameterSetName)) {
+		#Collect bound request parameters, converting switches to boolean values
+		$RequestParams = [ordered]@{ }
+		$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
 
-			'Query' {
+			$RequestParams[$_] = if ($PSBoundParameters[$_] -is [switch]) { $PSBoundParameters[$_].IsPresent } else { $PSBoundParameters[$_] }
 
-				if ($UsePostMethod) {
-					# Build JSON body from query string for POST method (simplified)
-					$PostBody = @{}
-					foreach ($pair in $Query -split '&') {
-						$key,$value = $pair -split '=',2
-						if ($key) { $PostBody[$key] = [System.Uri]::UnescapeDataString($value) }
-					}
-					$PostBody = $PostBody | ConvertTo-Json
-				} else {
-					$QueryString = $Query
-				}
-
-				break
-
-			}
-
-			default {
-
-				[array]$QueryArgs = @()
-
-				#Enumerate bound parameters to build query string for URL
-				$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
-
-					$QueryArgs += "$_=$([System.Uri]::EscapeDataString($PSBoundParameters[$_]))"
-
-				}
-
-				if ($UsePostMethod) {
-					#For POST method, parameters go in body as JSON, URL has no query string
-					$PostBodyObject = @{}
-					$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
-						$PostBodyObject[$_] = $PSBoundParameters[$_]
-					}
-					$PostBody = $PostBodyObject | ConvertTo-Json
-				} else {
-					#For GET method, parameters go in URL query string
-					$QueryString = $QueryArgs -join '&'
-				}
-
-			}
-
-		}
-
-		$URI = "$URL/$WebServiceName/api/Accounts"
-		if (-not $UsePostMethod -and $QueryString) {
-			$URI += "?$QueryString"
 		}
 
 		$Request = @{
-			'URI'             = $URI
-			'Method'          = if ($UsePostMethod) { 'POST' } else { 'GET' }
+			'URI'             = "$URL/$WebServiceName/api/Accounts"
+			'Method'          = $Method
 			'ContentType'     = 'application/json'
 			'ErrorAction'     = 'Stop'
 			'ErrorVariable'   = 'RequestError'
 			'UseBasicParsing' = $true
 		}
 
-		# Add body for POST requests
-		if ($UsePostMethod) {
-			$Request['Body'] = $PostBody
+		Switch ($Method) {
+
+			'GET' {
+
+				#Request parameters sent in URL query string
+				$QueryString = ($RequestParams.Keys | ForEach-Object {
+						"$_=$([System.Uri]::EscapeDataString($RequestParams[$_]))"
+					}) -join '&'
+
+				$Request['URI'] += "?$QueryString"
+
+			}
+
+			'POST' {
+
+				#Request parameters sent in JSON body
+				$Request['Body'] = $RequestParams | ConvertTo-Json
+
+			}
+
 		}
 
 		# Add authentication parameters to request
@@ -483,34 +507,42 @@
 
 		} Catch {
 
+			$ErrorRecord = $PSItem
+			$ErrorMessage = $ErrorRecord.Exception.Message
+			$ErrorID = $ErrorRecord.FullyQualifiedErrorId
+
 			try {
 
-				$err = $_ | ConvertFrom-Json -ErrorAction Stop
-				$ErrorMessage = $err.ErrorMsg
-				$ErrorID = $err.ErrorCode
+				$err = $ErrorRecord | ConvertFrom-Json -ErrorAction Stop
 
 			} catch {
 
-				$ErrorMessage = $RequestError.ErrorRecord.Exception
-				$ErrorID = $RequestError.ErrorRecord.FullyQualifiedErrorId
+				#Response is not JSON, keep original exception details
+				$err = $null
 
-			} Finally {
+			}
 
-				#throw the error
-				$PSCmdlet.ThrowTerminatingError(
+			#CCP errors use ErrorMsg/ErrorCode, IIS/ASP.NET errors use Message
+			if ($err.ErrorMsg) {
+				$ErrorMessage = $err.ErrorMsg
+				$ErrorID = $err.ErrorCode
+			} elseif ($err.Message) {
+				$ErrorMessage = $err.Message
+			}
 
-					[System.Management.Automation.ErrorRecord]::new(
+			#throw the error
+			$PSCmdlet.ThrowTerminatingError(
 
-						$ErrorMessage,
-						$ErrorID,
-						[System.Management.Automation.ErrorCategory]::NotSpecified,
-						$PSItem
+				[System.Management.Automation.ErrorRecord]::new(
 
-					)
+					$ErrorMessage,
+					$ErrorID,
+					[System.Management.Automation.ErrorCategory]::NotSpecified,
+					$ErrorRecord
 
 				)
 
-			}
+			)
 
 		} Finally {
 
