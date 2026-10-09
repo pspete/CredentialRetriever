@@ -25,7 +25,13 @@ if ( -not (Get-Module -Name $ModuleName -All)) {
 InModuleScope $ModuleName {
 	Describe 'Get-CCPCredential' {
 
-
+		BeforeAll {
+			$RSA = [System.Security.Cryptography.RSA]::Create(2048)
+			$CertificateRequest = New-Object -TypeName System.Security.Cryptography.X509Certificates.CertificateRequest -ArgumentList @(
+				'CN=CredentialRetriever', $RSA, [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
+			)
+			$TestCertificate = $CertificateRequest.CreateSelfSigned([DateTimeOffset]::Now, [DateTimeOffset]::Now.AddDays(1))
+		}
 
 		BeforeEach {
 			Mock Invoke-RestMethod {}
@@ -109,25 +115,43 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
-		#If Tls12 Security Protocol is available
-		if ([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') {
+		It 'sends request to expected URL when URL has trailing slash' {
+			Get-CCPCredential -AppID SomeApplication -URL 'https://SomeURL/'
+			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
-			It 'uses TLS12' {
-				[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls11
-				$InputObj | Get-CCPCredential
-				[System.Net.ServicePointManager]::SecurityProtocol | Should Be Tls12
-			}
+				$URI -eq 'https://SomeURL/AIMWebService/api/Accounts?AppID=SomeApplication'
 
+			} -Times 1 -Exactly -Scope It
 		}
 
-		If ($PSEdition -eq 'Core') {
+		Context 'Security Protocol' {
 
-			It 'specifies TLS12 SSL Protocol' {
+			BeforeEach {
+				$SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol
+			}
 
+			AfterEach {
+				[System.Net.ServicePointManager]::SecurityProtocol = $SecurityProtocol
+			}
+
+			It 'adds TLS12 to explicit security protocols' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+				[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls11
+				$InputObj | Get-CCPCredential
+				[System.Net.ServicePointManager]::SecurityProtocol.HasFlag([Net.SecurityProtocolType]::Tls11) | Should Be $true
+				[System.Net.ServicePointManager]::SecurityProtocol.HasFlag([Net.SecurityProtocolType]::Tls12) | Should Be $true
+			}
+
+			It 'does not change SystemDefault security protocol' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+				[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]0
+				$InputObj | Get-CCPCredential
+				[int][System.Net.ServicePointManager]::SecurityProtocol | Should Be 0
+			}
+
+			It 'does not specify SslProtocol' {
 				$InputObj | Get-CCPCredential
 				Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
-					$SslProtocol -eq 'TLS12'
+					$null -eq $SslProtocol
 
 				} -Times 1 -Exactly -Scope It
 			}
@@ -200,7 +224,7 @@ InModuleScope $ModuleName {
 
 		It 'invokes rest method with certificate' {
 
-			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
+			$certificate = $TestCertificate
 			$InputObj | Get-CCPCredential -Certificate $certificate
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
@@ -211,7 +235,7 @@ InModuleScope $ModuleName {
 
 		It 'invokes rest method with query and certificate' {
 
-			$certificate = Get-ChildItem -Path Cert:\CurrentUser\My\ | Select-Object -First 1
+			$certificate = $TestCertificate
 			$InputObj | Get-CCPCredential -Query 'SomeQuery' -Certificate $certificate
 			Assert-MockCalled Invoke-RestMethod -ParameterFilter {
 
@@ -230,11 +254,44 @@ InModuleScope $ModuleName {
 			} -Times 1 -Exactly -Scope It
 		}
 
+		Context 'Certificate Policy' {
+
+			It 'skips certificate check during request on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				Mock Invoke-RestMethod { $Script:RequestCertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy }
+				$InputObj | Get-CCPCredential -SkipCertificateCheck
+				$Script:RequestCertificatePolicy.GetType().FullName | Should Be 'CredentialRetriever.TrustAllCertificatePolicy'
+			}
+
+			It 'restores certificate policy after request on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				$CertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy
+				$InputObj | Get-CCPCredential -SkipCertificateCheck
+				[System.Net.ServicePointManager]::CertificatePolicy | Should Be $CertificatePolicy
+			}
+
+			It 'restores certificate policy after failed request on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				Mock Invoke-RestMethod { throw 'Some Error' }
+				$CertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy
+				$InputObj | Get-CCPCredential -SkipCertificateCheck -ErrorAction SilentlyContinue
+				[System.Net.ServicePointManager]::CertificatePolicy | Should Be $CertificatePolicy
+			}
+
+		}
+
 		It 'invokes Skip-CertificateCheck on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
 
-			Mock Skip-CertificateCheck { }
+			Mock Skip-CertificateCheck { [System.Net.ServicePointManager]::CertificatePolicy }
 			$InputObj | Get-CCPCredential -SkipCertificateCheck
 			Assert-MockCalled Skip-CertificateCheck -Times 1 -Exactly -Scope It
+		}
+
+		It 'does not change certificate policy without SkipCertificateCheck on Windows PowerShell' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+			Mock Skip-CertificateCheck { }
+			$InputObj | Get-CCPCredential
+			Assert-MockCalled Skip-CertificateCheck -Times 0 -Exactly -Scope It
 		}
 
 		It 'does not output previous result when a later request fails' {

@@ -31,7 +31,7 @@
 	Defines search criteria according to the Database account property.
 
 	.PARAMETER PolicyID
-	Defines the format that will be used in the set PolicyID method.
+	Defines search criteria according to the PolicyID account property.
 
 	.PARAMETER Reason
 	The reason for retrieving the password. This reason will be audited in the Credential Provider audit log
@@ -231,7 +231,7 @@
 		[string]
 		$Database,
 
-		# SetPolicyID format
+		# Search PolicyID
 		[Parameter(
 			Mandatory = $false,
 			ValueFromPipelineByPropertyName = $true,
@@ -419,20 +419,26 @@
 
 	Begin {
 
-		#Collection of parameters which are to be excluded from the request URL
-		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
-		[array]$CommonParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
-		[array]$CommonParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'Method'
+		#Collection of parameters which are to be excluded from the request
+		[array]$ExcludedParameters += [System.Management.Automation.PSCmdlet]::CommonParameters
+		[array]$ExcludedParameters += [System.Management.Automation.PSCmdlet]::OptionalCommonParameters
+		[array]$ExcludedParameters += 'URL', 'WebServiceName', 'Credential', 'UseDefaultCredentials', 'CertificateThumbPrint', 'Certificate', 'SkipCertificateCheck', 'Method'
 
-		#If Tls12 Security Protocol is available
-		if (([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
+		if ($PSEdition -ne 'Core') {
 
-			#And Tls12 is not already in use
-			(-not ([System.Net.ServicePointManager]::SecurityProtocol -match 'Tls12'))) {
+			#A SecurityProtocol of SystemDefault (0) lets Schannel negotiate the strongest protocol
+			#both ends support, and is left untouched. Only a process pinned to explicit legacy
+			#protocols needs TLS 1.2 adding, and it is combined with the protocols already permitted.
+			$SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol
 
-			#Use Tls12
-			Write-Verbose 'Setting Security Protocol to TLS12'
-			[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+			if (([int]$SecurityProtocol -ne 0) -and
+				([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
+				(-not ($SecurityProtocol.HasFlag([Net.SecurityProtocolType]::Tls12)))) {
+
+				Write-Verbose 'Adding TLS12 to Security Protocol'
+				[Net.ServicePointManager]::SecurityProtocol = $SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+			}
 
 		}
 
@@ -442,18 +448,17 @@
 
 		#Collect bound request parameters, converting switches to boolean values
 		$RequestParams = [ordered]@{ }
-		$PSBoundParameters.keys | Where-Object { $CommonParameters -notcontains $_ } | ForEach-Object {
+		$PSBoundParameters.keys | Where-Object { $ExcludedParameters -notcontains $_ } | ForEach-Object {
 
 			$RequestParams[$_] = if ($PSBoundParameters[$_] -is [switch]) { $PSBoundParameters[$_].IsPresent } else { $PSBoundParameters[$_] }
 
 		}
 
 		$Request = @{
-			'URI'             = "$URL/$WebServiceName/api/Accounts"
+			'URI'             = "$($URL.TrimEnd('/'))/$WebServiceName/api/Accounts"
 			'Method'          = $Method
 			'ContentType'     = 'application/json'
 			'ErrorAction'     = 'Stop'
-			'ErrorVariable'   = 'RequestError'
 			'UseBasicParsing' = $true
 		}
 
@@ -487,16 +492,18 @@
 			{ $PSItem -contains 'Certificate' } { $Request['Certificate'] = $Certificate }
 		}
 
-		#in PSCore Use SslProtocol TLS1.2 & SkipCertificateCheck parameter
+		$RestoreCertificatePolicy = $false
+
+		#in PSCore use SkipCertificateCheck parameter
 		if ($PSEdition -eq 'Core') {
 
-			$Request.Add('SslProtocol', 'TLS12')
 			$Request.Add('SkipCertificateCheck', $SkipCertificateCheck.IsPresent)
 
 		} elseif ($SkipCertificateCheck) {
 
-			#Skip SSL Validation
-			Skip-CertificateCheck
+			#Skip SSL Validation, saving previous certificate policy
+			$CertificatePolicy = Skip-CertificateCheck
+			$RestoreCertificatePolicy = $true
 
 		}
 
@@ -552,6 +559,15 @@
 				)
 
 			)
+
+		} Finally {
+
+			#Restore previous certificate policy
+			if ($RestoreCertificatePolicy) {
+
+				[System.Net.ServicePointManager]::CertificatePolicy = $CertificatePolicy
+
+			}
 
 		}
 

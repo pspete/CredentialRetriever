@@ -43,7 +43,37 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			It 'does not throw' {
 
-				{ Skip-CertificateCheck } | Should -Not -Throw
+				{ $Script:CertificatePolicy = Skip-CertificateCheck } | Should -Not -Throw
+				if ($PSVersionTable.PSEdition -ne 'Core') { [System.Net.ServicePointManager]::CertificatePolicy = $Script:CertificatePolicy }
+
+			}
+
+			It 'outputs previous certificate policy' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				$CertificatePolicy = [System.Net.ServicePointManager]::CertificatePolicy
+				$Result = Skip-CertificateCheck
+				[System.Net.ServicePointManager]::CertificatePolicy = $CertificatePolicy
+				$Result | Should -Be $CertificatePolicy
+
+			}
+
+			It 'sets certificate policy which trusts all certificates' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				$CertificatePolicy = Skip-CertificateCheck
+				$Result = [System.Net.ServicePointManager]::CertificatePolicy
+				[System.Net.ServicePointManager]::CertificatePolicy = $CertificatePolicy
+				$Result.GetType().FullName | Should -Be 'CredentialRetriever.TrustAllCertificatePolicy'
+				$Result.CheckValidationResult($null, $null, $null, 1) | Should -Be $true
+
+			}
+
+			It 'compiles certificate policy once' -Skip:($PSVersionTable.PSEdition -eq 'Core') {
+
+				Mock Add-Type { }
+				$CertificatePolicy = Skip-CertificateCheck
+				$null = Skip-CertificateCheck
+				[System.Net.ServicePointManager]::CertificatePolicy = $CertificatePolicy
+				Assert-MockCalled Add-Type -Times 0 -Exactly -Scope It
 
 			}
 

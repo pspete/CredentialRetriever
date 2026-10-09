@@ -4,39 +4,38 @@ Function Skip-CertificateCheck {
 	Bypass SSL Validation
 
 	.DESCRIPTION
-	Enables skipping of ssl certificate validation for current PowerShell session.
+	Sets a certificate policy which skips ssl certificate validation for Windows PowerShell web requests.
+	The certificate policy type is compiled once per session.
+	Outputs the previously configured certificate policy, which should be restored once requests complete.
 
 	.EXAMPLE
-	Skip-CertificateCheck
+	$CertificatePolicy = Skip-CertificateCheck
+
+	Skips certificate validation, saving the previous certificate policy to $CertificatePolicy.
 
 	#>
 
-	$CompilerParameters = New-Object System.CodeDom.Compiler.CompilerParameters
-	$CompilerParameters.GenerateExecutable = $false
-	$CompilerParameters.GenerateInMemory = $true
-	$CompilerParameters.IncludeDebugInformation = $false
-	$CompilerParameters.ReferencedAssemblies.Add('System.DLL') | Out-Null
-	$CertificatePolicy = @'
-        namespace Local.ToolkitExtensions.Net.CertificatePolicy
-        {
-            public class TrustAll : System.Net.ICertificatePolicy
-            {
-                public bool CheckValidationResult(System.Net.ServicePoint sp,System.Security.Cryptography.X509Certificates.X509Certificate cert, System.Net.WebRequest req, int problem)
-                {
-                    return true;
-                }
-            }
-        }
-'@
-
 	if ($PSEdition -ne 'Core') {
 
-		$CSharpCodeProvider = New-Object Microsoft.CSharp.CSharpCodeProvider
-		$PolicyResult = $CSharpCodeProvider.CompileAssemblyFromSource($CompilerParameters, $CertificatePolicy)
-		$CompiledAssembly = $PolicyResult.CompiledAssembly
-		## Create an instance of TrustAll and attach it to the ServicePointManager
-		$TrustAll = $CompiledAssembly.CreateInstance('Local.ToolkitExtensions.Net.CertificatePolicy.TrustAll')
-		[System.Net.ServicePointManager]::CertificatePolicy = $TrustAll
+		if (-not ('CredentialRetriever.TrustAllCertificatePolicy' -as [type])) {
+
+			Add-Type -TypeDefinition @'
+namespace CredentialRetriever
+{
+	public class TrustAllCertificatePolicy : System.Net.ICertificatePolicy
+	{
+		public bool CheckValidationResult(System.Net.ServicePoint sp, System.Security.Cryptography.X509Certificates.X509Certificate cert, System.Net.WebRequest req, int problem)
+		{
+			return true;
+		}
+	}
+}
+'@
+
+		}
+
+		[System.Net.ServicePointManager]::CertificatePolicy
+		[System.Net.ServicePointManager]::CertificatePolicy = New-Object -TypeName CredentialRetriever.TrustAllCertificatePolicy
 
 	}
 
