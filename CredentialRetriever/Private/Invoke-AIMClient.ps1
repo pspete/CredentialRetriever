@@ -11,15 +11,14 @@
 	The Path to CLIPasswordSDK.exe.
 	Defaults to value of $Script:AIM.ClientPath, which is set during module import or via Set-AIMConfiguration.
 
+	.PARAMETER Command
+	The CLIPasswordSDK command to execute. Defaults to GetPassword.
+
 	.PARAMETER CommandParameters
-	The CLIPasswordSDK command to execute
+	The CLIPasswordSDK command parameters
 
-	.PARAMETER PAROptions
-	Additional command parameters.
-
-	.PARAMETER RemainingArgs
-	A catch all parameter, accepts any remaining values from pipeline.
-	Intended to suppress errors when piping in an object.
+	.PARAMETER Options
+	Additional command options.
 
     .EXAMPLE
 	Invoke-AIMClient -CommandParameters "/p AppDescs.AppID=TestApp /p RequiredProps=UserName,Address /p Query="Safe=TestSafe;Folder=Root;UserName=TestUser1" /o PassProps.UserName,PassProps.Address,Password,PasswordChangeInProcess""
@@ -32,7 +31,6 @@
     #>
 
 	[CmdLetBinding(SupportsShouldProcess)]
-	[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'RemainingArgs', Justification = 'Intentionally Unused Parameter')]
 	param(
 
 		[Parameter(
@@ -56,29 +54,10 @@
 		[Parameter(Mandatory = $False,
 			ValueFromPipelineByPropertyName = $True
 		)]
-		[string]$Options,
-
-		[Parameter(Mandatory = $False,
-			ValueFromPipelineByPropertyName = $False,
-			ValueFromRemainingArguments = $true
-		)]
-		$RemainingArgs
+		[string]$Options
 	)
 
 	Begin {
-
-		Try {
-
-			$null = Get-Variable -Name AIM -ErrorAction Stop
-
-			#Check we have the path to the required client executable
-			if ($AIM.PSObject.Properties.Name -notcontains 'ClientPath') {
-
-				Write-Error 'Heads Up!' -ErrorAction Stop
-
-			}
-
-		} Catch { throw "CLIPasswordSDK.exe not found `nRun Set-AIMConfiguration to set path to CLIPasswordSDK" }
 
 		#Create process
 		$Process = New-Object System.Diagnostics.Process
@@ -86,6 +65,17 @@
 	}
 
 	Process {
+
+		#Check we have the path to the required client executable
+		if (-not $ClientPath) {
+
+			throw "CLIPasswordSDK path not set `nRun Set-AIMConfiguration to set path to CLIPasswordSDK"
+
+		} elseif (-not (Test-Path -LiteralPath $ClientPath -PathType Leaf)) {
+
+			throw "CLIPasswordSDK not found at '$ClientPath' `nRun Set-AIMConfiguration to set path to CLIPasswordSDK"
+
+		}
 
 		if ($PSCmdlet.ShouldProcess($ClientPath, "$CommandParameters")) {
 

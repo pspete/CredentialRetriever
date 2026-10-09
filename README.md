@@ -41,6 +41,8 @@ Specify relevant parameter values needed to find the required account.
 
 Set the path to the CLIPasswordSDK.exe utility. This value will persist, and be imported each time the CredentialRetriever module is imported.
 
+If no path has been set, CLIPasswordSDK is used from its default install location, when present. Use `Get-AIMConfiguration` to view the path in use.
+
 ![Set-AIMConfiguration](media/Set-AIMConfiguration.png)
 
 Supply the AppID & relevant parameter values needed to find the required account.

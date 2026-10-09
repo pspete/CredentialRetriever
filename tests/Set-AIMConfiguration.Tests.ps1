@@ -62,11 +62,29 @@ Describe $FunctionName {
 				$($Script:AIM.ClientPath) | Should Be 'SomePath'
 			}
 
-			It 'exports configuration to user profile' {
+			It 'exports configuration to home folder' {
 				$InputObj | Set-AIMConfiguration
 				Assert-MockCalled Export-Clixml -ParameterFilter {
-					$Path -eq "$env:USERPROFILE\AIMConfiguration.xml"
+					$Path -eq (Join-Path -Path $HOME -ChildPath 'AIMConfiguration.xml')
 				} -Times 1 -Exactly -Scope It
+			}
+
+			It 'exports configuration with ClientPath property' {
+				$InputObj | Set-AIMConfiguration
+				Assert-MockCalled Export-Clixml -ParameterFilter {
+					$InputObject.ClientPath -eq 'SomePath'
+				} -Times 1 -Exactly -Scope It
+			}
+
+			It 'specifies ClientPath as mandatory' {
+				(Get-Command Set-AIMConfiguration).Parameters['ClientPath'].Attributes.Mandatory | Should Be $true
+			}
+
+			It 'does not set configuration with WhatIf' {
+				$Script:AIM = [pscustomobject]@{ ClientPath = 'OtherPath' }
+				$InputObj | Set-AIMConfiguration -WhatIf
+				$Script:AIM.ClientPath | Should Be 'OtherPath'
+				Assert-MockCalled Export-Clixml -Times 0 -Exactly -Scope It
 			}
 
 		}

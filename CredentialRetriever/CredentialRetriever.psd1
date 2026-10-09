@@ -16,13 +16,16 @@
 	# CompanyName = ''
 
 	# Copyright statement for this module
-	Copyright         = '(c) 2018-2022 Pete Maan. All rights reserved.'
+	Copyright         = '(c) 2018-2026 Pete Maan. All rights reserved.'
 
 	# Description of the functionality provided by this module
 	Description       = 'Retrieve Credentials from CyberArk Central Credential Provider via REST, or Local Credential Provider using CLIPasswordSDK'
 
 	# Minimum version of the Windows PowerShell engine required by this module
 	PowerShellVersion = '5.1'
+
+	# Supported PSEditions
+	CompatiblePSEditions = @('Desktop', 'Core')
 
 	# Name of the Windows PowerShell host required by this module
 	# PowerShellHostName = ''
@@ -58,7 +61,8 @@
 	FunctionsToExport = @(
 		'Get-CCPCredential',
 		'Get-AIMCredential',
-		'Set-AIMConfiguration'
+		'Set-AIMConfiguration',
+		'Get-AIMConfiguration'
 	)
 
 	#AliasesToExport   = @()
@@ -72,7 +76,7 @@
 			Tags       = @('CyberArk', 'REST', 'API', 'Security', 'AIM', 'AAM', 'CentralCredentialProvider', 'CredentialProvider', 'CLIPasswordSDK')
 
 			# A URL to the license for this module.
-			LicenseUri = 'https://github.com/pspete/CredentialRetriever/blob/master/LICENSE.md'
+			LicenseUri = 'https://github.com/pspete/CredentialRetriever/blob/master/LICENSE'
 
 			# A URL to the main website for this project.
 			ProjectUri = 'https://github.com/pspete/CredentialRetriever'

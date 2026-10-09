@@ -111,7 +111,7 @@ Describe 'Module' {
 
 							}
 
-							$HelpParameters = $help.parameters.parameter | Where-Object name -NotIn @('WhatIf', 'Confirm')
+							$HelpParameters = $help.parameters.parameter | Where-Object { $_.name -and ($_.name -notin @('WhatIf', 'Confirm')) }
 
 							@($HelpParameters).foreach{
 

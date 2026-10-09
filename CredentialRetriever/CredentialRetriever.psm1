@@ -48,9 +48,19 @@ ForEach-Object {
 }
 
 #Read config and make available in script scope
-$ConfigFile = "$env:USERPROFILE\AIMConfiguration.xml"
+$ConfigFile = Join-Path -Path $HOME -ChildPath 'AIMConfiguration.xml'
 If (Test-Path $ConfigFile) {
 	Write-Verbose "Importing Settings: $ConfigFile"
 	$config = Import-Clixml -Path $ConfigFile
 	Set-Variable -Name AIM -Value $config -Scope Script
+} Else {
+	#Use CLIPasswordSDK default install location, if present
+	$ClientPath = @(
+		"$env:ProgramFiles\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe",
+		'/opt/CARKaim/sdk/clipasswordsdk'
+	) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+	If ($ClientPath) {
+		Write-Verbose "Using CLIPasswordSDK: $ClientPath"
+		Set-Variable -Name AIM -Value ([pscustomobject]@{ ClientPath = $ClientPath }) -Scope Script
+	}
 }

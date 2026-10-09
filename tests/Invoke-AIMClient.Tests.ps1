@@ -66,15 +66,15 @@ Describe $FunctionName {
 
 			}
 
-			It 'tests path' {
+			It 'throws if ClientPath is not resolvable' {
 
-				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw
+				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw "CLIPasswordSDK not found at '.\RandomFile.exe'"
 
 			}
 
 			It "throws if `$AIM variable not set in script scope" {
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw 'CLIPasswordSDK path not set'
 
 			}
 
@@ -84,9 +84,9 @@ Describe $FunctionName {
 					prop1 = 'Value1'
 					prop2 = 'Value2'
 				}
-				New-Variable -Name AIM -Value $object
+				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw 'CLIPasswordSDK path not set'
 
 			}
 
@@ -96,9 +96,16 @@ Describe $FunctionName {
 					ClientPath = '.\RandomFile.Exe'
 					prop2      = 'Value2'
 				}
-				New-Variable -Name AIM -Value $object
+				New-Variable -Name AIM -Value $object -Scope Script
 
-				{ $InputObj | Invoke-AIMClient } | Should Throw
+				{ $InputObj | Invoke-AIMClient } | Should Throw "CLIPasswordSDK not found at '.\RandomFile.Exe'"
+
+			}
+
+			It 'does not start process if ClientPath is not resolvable' {
+
+				{ $InputObj | Invoke-AIMClient -ClientPath .\RandomFile.exe } | Should Throw
+				Assert-MockCalled Start-AIMClientProcess -Times 0 -Exactly -Scope It
 
 			}
 
@@ -156,6 +163,10 @@ Describe $FunctionName {
 		Context 'Reporting Errors' {
 
 			BeforeEach {
+
+				Mock Test-Path -MockWith {
+					$true
+				}
 
 				$InputObj = [pscustomobject]@{
 					CommandParameters = 'Some Command Parameters'

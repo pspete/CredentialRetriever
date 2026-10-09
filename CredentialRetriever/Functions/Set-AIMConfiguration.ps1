@@ -2,7 +2,8 @@ Function Set-AIMConfiguration {
 	<#
 	.SYNOPSIS
 	Sets a variable in the script scope which holds default values for CLIPasswordSDK operations.
-	Must be run prior to other module functions if path to CLIPasswordSDK has not been previously set.
+	Must be run prior to other module functions if path to CLIPasswordSDK has not been previously set,
+	and CLIPasswordSDK is not installed in its default location.
 
 	.DESCRIPTION
 	Sets properties on an object which is used as the value of a variable in the script scope.
@@ -11,20 +12,20 @@ Function Set-AIMConfiguration {
 	used by the module, and will be imported with the module into the module's scope.
 
 	.PARAMETER ClientPath
-	The path to the CLIPasswordSDK.exe utility
+	The path to the CLIPasswordSDK utility
 
 	.EXAMPLE
 	Set-AIMConfiguration -ClientPath D:\Path\To\CLIPasswordSDK.exe
 
 	Sets default path to CLIPasswordSDK to D:\Path\To\CLIPasswordSDK.exe.
 	This is accessed via the variable property $Script:AIM.ClientPath
-	Creates C:\users\user\AIMConfiguration.xml file to hold values for persistence.
+	Creates $HOME\AIMConfiguration.xml file to hold values for persistence.
 
 	#>
 	[CmdletBinding(SupportsShouldProcess)]
 	Param(
 		[Parameter(
-			Mandatory = $false,
+			Mandatory = $true,
 			ValueFromPipelineByPropertyName = $true
 		)]
 		[ValidateScript( { Test-Path $_ -PathType Leaf })]
@@ -32,27 +33,17 @@ Function Set-AIMConfiguration {
 		[string]$ClientPath
 	)
 
-	Begin {
-
-		$Defaults = [pscustomobject]@{ }
-
-	}
-
 	Process {
 
-		If ($PSBoundParameters.Keys -contains 'ClientPath') {
+		$ConfigFile = Join-Path -Path $HOME -ChildPath 'AIMConfiguration.xml'
 
-			$Defaults | Add-Member -MemberType NoteProperty -Name ClientPath -Value $ClientPath
+		if ($PSCmdlet.ShouldProcess($ConfigFile, "Set ClientPath to $ClientPath")) {
+
+			Set-Variable -Name AIM -Value ([pscustomobject]@{ ClientPath = $ClientPath }) -Scope Script
+
+			$Script:AIM | Export-Clixml -Path $ConfigFile -Force
 
 		}
-
-	}
-
-	End {
-
-		Set-Variable -Name AIM -Value $Defaults -Scope Script
-
-		$Script:AIM | Select-Object -Property * | Export-Clixml -Path "$env:USERPROFILE\AIMConfiguration.xml" -Force
 
 	}
 
