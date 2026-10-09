@@ -1,18 +1,16 @@
 # CredentialRetriever
 
-| Master Branch            | Latest Build            | CodeFactor                | Coverage                    |  PowerShell Gallery       |  License                   |
-|--------------------------|-------------------------|---------------------------|-----------------------------|---------------------------|----------------------------|
-|[![appveyor][]][av-site]  |[![tests][]][tests-site] | [![codefactor][]][cf-site]| [![codecov][]][codecov-link]| [![psgallery][]][ps-site] |[![license][]][license-link]|
-|                          |                         |                           | [![coveralls][]][cv-site]   | [![downloads][]][ps-site] |                            |
+| Master Branch            | Dev Branch               | CodeFactor                 | Coverage                     | PowerShell Gallery        | License                      |
+| ------------------------ | ------------------------ | -------------------------- | ---------------------------- | ------------------------- | ---------------------------- |
+| [![build][]][build-site] | [![dev][]][dev-site]     | [![codefactor][]][cf-site] | [![codecov][]][codecov-link] | [![psgallery][]][ps-site] | [![license][]][license-link] |
+|                          |                          |                            |                              | [![downloads][]][ps-site] |                              |
 
-[appveyor]:https://ci.appveyor.com/api/projects/status/s2x3alg52ctp2pyl/branch/master?svg=true
-[av-site]:https://ci.appveyor.com/project/pspete/CredentialRetriever/branch/master
-[coveralls]:https://coveralls.io/repos/github/pspete/CredentialRetriever/badge.svg?branch=master
-[cv-site]:https://coveralls.io/github/pspete/CredentialRetriever?branch=master
+[build]:https://github.com/pspete/CredentialRetriever/actions/workflows/ci.yml/badge.svg?branch=master&event=push
+[build-site]:https://github.com/pspete/CredentialRetriever/actions/workflows/ci.yml?query=branch%3Amaster
+[dev]:https://github.com/pspete/CredentialRetriever/actions/workflows/ci.yml/badge.svg?branch=dev&event=push
+[dev-site]:https://github.com/pspete/CredentialRetriever/actions/workflows/ci.yml?query=branch%3Adev
 [psgallery]:https://img.shields.io/powershellgallery/v/CredentialRetriever.svg
 [ps-site]:https://www.powershellgallery.com/packages/CredentialRetriever
-[tests]:https://img.shields.io/appveyor/tests/pspete/CredentialRetriever.svg
-[tests-site]:https://ci.appveyor.com/project/pspete/CredentialRetriever
 [downloads]:https://img.shields.io/powershellgallery/dt/credentialretriever.svg?color=blue
 [cf-site]:https://www.codefactor.io/repository/github/pspete/credentialretriever
 [codefactor]:https://www.codefactor.io/repository/github/pspete/credentialretriever/badge
@@ -40,6 +38,8 @@ Specify relevant parameter values needed to find the required account.
 ### Get-AIMCredential
 
 Set the path to the CLIPasswordSDK.exe utility. This value will persist, and be imported each time the CredentialRetriever module is imported.
+
+If no path has been set, CLIPasswordSDK is used from its default install location, when present. Use `Get-AIMConfiguration` to view the path in use.
 
 ![Set-AIMConfiguration](media/Set-AIMConfiguration.png)
 
