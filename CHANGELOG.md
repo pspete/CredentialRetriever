@@ -9,6 +9,10 @@
 - `Get-CCPCredential`: `FailRequestOnPasswordChange` parameter.
 - `Get-AIMCredential`: `Query` parameter, for a free query of account properties (e.g. `Safe=PS;CustomProperty=Value`).
 - `Get-AIMCredential`: `FailRequestOnPasswordChange` parameter.
+- `Get-AIMConfiguration`: outputs the CLIPasswordSDK configuration.
+- CLIPasswordSDK path is detected from its default install location when no configuration has been saved.
+- Module manifest: `CompatiblePSEditions` (`Desktop`, `Core`).
+- `Get-AIMCredential`: Linux support. CLIPasswordSDK arguments use the `-` prefix on Linux (`/` on Windows).
 
 ### Changed
 
@@ -18,7 +22,11 @@
 - **BREAKING** `Get-CCPCredential`: request errors are now non-terminating, so remaining pipeline input is still processed. Use `-ErrorAction Stop` for the previous behaviour.
 - **BREAKING** `Get-AIMCredential`: `Safe` now binds from pipeline by property name, consistent with other parameters, instead of by value.
 - **BREAKING** `Get-AIMCredential`: requested properties which do not exist (`<na>`) or have no value (`<null>`) are now output as `$null`.
+- **BREAKING** `Set-AIMConfiguration`: `ClientPath` is now mandatory.
 - `Get-AIMCredential`: search parameter values containing `;` or `"`, and `Query`/`Reason` values containing `"`, are now rejected.
+- `Get-CCPCredential`: on Windows PowerShell, TLS 1.2 is added to explicitly configured security protocols instead of replacing them, and `SystemDefault` is left unchanged. On PowerShell Core, `SslProtocol` is no longer pinned to TLS 1.2, allowing TLS 1.3.
+- `Get-CCPCredential`: on Windows PowerShell, `SkipCertificateCheck` now applies only to the request; the previous certificate policy is restored afterwards.
+- Configuration file path is now `$HOME/AIMConfiguration.xml` (unchanged on Windows), for Linux/macOS support.
 
 ### Fixed
 
@@ -27,6 +35,10 @@
 - `Get-CCPCredential`: when a piped request failed, the result of the previous request was output again.
 - `Get-AIMCredential`: piping multiple objects repeated the first query and failed to parse output for subsequent objects.
 - `Get-AIMCredential`: a failed `CLIPasswordSDK` process (non-zero exit code without a recognised error message) output an empty object instead of an error.
+- `Get-AIMCredential`: a configured CLIPasswordSDK path which does not exist is now reported as not found.
+- `Get-CCPCredential`: a `URL` with a trailing `/` produced a request URL containing `//`.
+- `Set-AIMConfiguration`: `WhatIf` and `Confirm` were ignored.
+- Module manifest: `LicenseUri`.
 
 ## 3.10.56
 
