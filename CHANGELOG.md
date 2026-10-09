@@ -5,6 +5,7 @@
 ### Added
 
 - `Get-CCPCredential`: `Method` parameter (`GET` or `POST`, default `GET`). `POST` sends request details in a JSON body (requires CCP 14.2 or later).
+  - Thanks [JP-Consulting](https://github.com/johannesconsulting)!!!!
 - `Get-CCPCredential`: `QueryFormat` parameter (`Exact` or `Regexp`), for use with `Query`.
 - `Get-CCPCredential`: `FailRequestOnPasswordChange` parameter.
 - `Get-AIMCredential`: `Query` parameter, for a free query of account properties (e.g. `Safe=PS;CustomProperty=Value`).
